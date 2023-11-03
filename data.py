@@ -1,6 +1,7 @@
 from random import randint, seed
 
 NR_FEATS = 2
+TRAIN_PERC = 0.7
 
 seed(0)
 
@@ -18,4 +19,10 @@ def generate_dataset(): # generate 101 data points from target_func
         dataset.append(obs)
         target.append(target_func(obs))
 
-    return dataset, target
+    train_dataset = dataset[:int(TRAIN_PERC*len(dataset))]
+    train_target = target[:int(TRAIN_PERC*len(target))]
+
+    test_dataset = dataset[int(TRAIN_PERC*len(dataset)):]
+    test_target = target[int(TRAIN_PERC*len(target)):]
+
+    return train_dataset, test_dataset, train_target, test_target

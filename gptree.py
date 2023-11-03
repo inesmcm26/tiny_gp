@@ -32,6 +32,9 @@ class GPTree:
             self.right.print_tree(prefix + "   ")
 
     def save_tree_expression(self, prefix = ''):
+        """
+        Same as print_tree but returns the string to be printed
+        """
         expr = prefix + self.node_label()
 
         if self.left:
@@ -42,7 +45,9 @@ class GPTree:
         return expr
     
     def create_expression(self):
-
+        """
+        Translated the tree to the corresponding algebraic expression
+        """
         if self.node_value in FUNCTIONS:
             l = '(' + self.left.create_expression() + ')'
             r = '(' + self.right.create_expression() + ')'
@@ -58,7 +63,6 @@ class GPTree:
         Args:
             obs: np.array with observation values
         """
-
 
         # Node is a function
         if self.node_value in FUNCTIONS: 

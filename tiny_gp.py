@@ -28,9 +28,9 @@ def init_population():
             ind = GPTree()
             ind.random_tree(grow = True, max_depth = max_depth)
 
-            print('GROW')
-            print('IND')
-            ind.print_tree()
+            # print('GROW')
+            # print('IND')
+            # ind.print_tree()
 
             pop.append(ind) 
         
@@ -39,9 +39,9 @@ def init_population():
             ind = GPTree()
             ind.random_tree(grow = False, max_depth = max_depth)   
 
-            print('FULL')
-            print('IND')
-            ind.print_tree()
+            # print('FULL')
+            # print('IND')
+            # ind.print_tree()
 
             pop.append(ind) 
 
@@ -78,12 +78,12 @@ def tournament(population, fitnesses):
     # Select random individuals to compete
     tournament = [randint(0, len(population)-1) for _ in range(TOURNAMENT_SIZE)]
 
-    print('INDEXES OF INDIVIDUALS TO GO TO TORNAMENT', tournament)
+    # print('INDEXES OF INDIVIDUALS TO GO TO TORNAMENT', tournament)
 
     # Get their fitness values
     tournament_fitnesses = [fitnesses[tournament[i]] for i in range(TOURNAMENT_SIZE)]
 
-    print('IND FITNESSES', tournament_fitnesses)
+    # print('IND FITNESSES', tournament_fitnesses)
     
     # Return the winner
     return deepcopy(population[tournament[tournament_fitnesses.index(min(tournament_fitnesses))]]) 
@@ -91,7 +91,7 @@ def tournament(population, fitnesses):
 def evolve():      
     seed()
     # TODO: get real dataset
-    dataset, target= generate_dataset()
+    train_dataset, test_dataset, train_target, test_target = generate_dataset()
 
     # print('DATASET')
     # print(dataset)
@@ -106,31 +106,35 @@ def evolve():
     for ind in population:
         print('IND')
         ind.print_tree()
+        
+        print('ALG EXPR')
+        print(ind.create_expression())
+
 
         # print('PREDICTIONS')
-        # print([ind.compute_tree(obs) for obs in dataset])
+        # print([ind.compute_tree(obs) for obs in train_dataset])
         # print('TARGET', target)
-        print('FITNESS:', fitness(ind, dataset, target))
+        # print('FITNESS:', fitness(ind, train_dataset, target))
 
-    # return
+    train_fitnesses = [fitness(ind, train_dataset, train_target) for ind in population]
 
+    best_of_run_f = min(train_fitnesses)
+    best_of_run_gen = 0
+    best_of_run = deepcopy(population[train_fitnesses.index(min(train_fitnesses))])
 
-    best_of_run = None # Best of run individual
-    best_of_run_f = 0 # Best of run fitness
-    best_of_run_gen = 0 # Generation with best of run
-
-    fitnesses = [fitness(ind, dataset, target) for ind in population]
-
-    # CROSSOVER TEST
-    parent = tournament(population, fitnesses)
-    parent2 = tournament(population, fitnesses)
-    parent.crossover(parent2)
+    # # CROSSOVER TEST
+    # parent = tournament(population, train_fitnesses)
+    # parent2 = tournament(population, train_fitnesses)
+    # parent.crossover(parent2)
 
     # # MUTATION TEST
-    # parent = tournament(population, fitnesses)
+    # parent = tournament(population, train_fitnesses)
     # parent.mutation()
 
-    return
+    best_train_fit_list = [best_of_run_f]
+    best_ind_list = [best_of_run]
+    best_test_fit_list = [fitness(best_of_run, test_dataset, test_target)]
+
 
     for gen in range(GENERATIONS):  
 
@@ -139,19 +143,13 @@ def evolve():
         while len(new_pop) < POP_SIZE:
             
             prob = random()
-            print('PROB', prob)
+            # print('PROB', prob)
 
-            parent = tournament(population, fitnesses)
-
-            print('TOURNAMENT WINNER')
-            parent.print_tree()
+            parent = tournament(population, train_fitnesses)
 
             # Crossover
             if prob < XO_RATE:
-                parent2 = tournament(population, fitnesses)
-
-                print('TOURNAMENT WINNER')
-                parent2.print_tree()
+                parent2 = tournament(population, train_fitnesses)
 
                 parent.crossover(parent2)
 
@@ -165,18 +163,21 @@ def evolve():
             
         population = new_pop
 
-        fitnesses = [fitness(ind, dataset, target) for ind in population]
-
-        print('NEW INDIVIDUALS FITNESSES', fitnesses)
+        train_fitnesses = [fitness(ind, train_dataset, train_target) for ind in population]
         
-        if max(fitnesses) > best_of_run_f:
-            best_of_run_f = max(fitnesses)
+        if min(train_fitnesses) < best_of_run_f:
+            best_of_run_f = min(train_fitnesses)
             best_of_run_gen = gen
-            best_of_run = deepcopy(population[fitnesses.index(max(fitnesses))])
+            best_of_run = deepcopy(population[train_fitnesses.index(min(train_fitnesses))])
 
             print("________________________")
-            print("gen:", gen, ", best_of_run_f:", round(max(fitnesses),3), ", best_of_run:") 
+            print("gen:", gen, ", best_of_run_f:", round(min(train_fitnesses), 3), ", best_of_run:") 
             best_of_run.print_tree()
+        
+
+        best_train_fit_list.append(best_of_run_f)
+        best_ind_list.append(best_of_run)
+        best_test_fit_list.append(fitness(best_of_run, test_dataset, test_target))
 
         # Optimal solution found
         if best_of_run_f == 0:
