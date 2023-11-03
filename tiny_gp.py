@@ -132,11 +132,11 @@ def evolve():
     # parent.mutation()
 
     best_train_fit_list = [best_of_run_f]
-    best_ind_list = [best_of_run]
+    best_ind_list = [best_of_run.create_expression()]
     best_test_fit_list = [fitness(best_of_run, test_dataset, test_target)]
 
 
-    for gen in range(GENERATIONS):  
+    for gen in range(1, GENERATIONS + 1):  
 
         new_pop=[]
 
@@ -176,7 +176,7 @@ def evolve():
         
 
         best_train_fit_list.append(best_of_run_f)
-        best_ind_list.append(best_of_run)
+        best_ind_list.append(best_of_run.create_expression())
         best_test_fit_list.append(fitness(best_of_run, test_dataset, test_target))
 
         # Optimal solution found
@@ -184,8 +184,12 @@ def evolve():
             break   
     
     print("\n\n_________________________________________________\nEND OF RUN\nbest_of_run attained at gen " + str(best_of_run_gen) +\
-          " and has f=" + str(round(best_of_run_f,3)))
+          " and has f=" + str(round(best_of_run_f, 3)))
     best_of_run.print_tree()
+
+    return best_train_fit_list, best_test_fit_list, best_ind_list, best_of_run_gen
     
 if __name__== "__main__":
-  evolve()
+  best_train_fit_list, best_test_fit_list, best_ind_list, best_of_run_gen = evolve()
+
+  print(best_train_fit_list, best_test_fit_list, best_ind_list, best_of_run_gen)
