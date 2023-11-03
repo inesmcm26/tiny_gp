@@ -1,7 +1,7 @@
 from random import random, randint
 
 from configs import *
-from ops import FUNCTIONS
+from ops import FUNCTIONS, MAPPING
 
 class GPTree:
     def __init__(self, node_value = None, left = None, right = None):
@@ -27,9 +27,29 @@ class GPTree:
         print("%s%s" % (prefix, self.node_label()))   
 
         if self.left:
-            self.left.print_tree (prefix + "   ")
+            self.left.print_tree(prefix + "   ")
         if self.right:
             self.right.print_tree(prefix + "   ")
+
+    def save_tree_expression(self, prefix = ''):
+        expr = prefix + self.node_label()
+
+        if self.left:
+            expr = expr + '\n' + self.left.save_tree_expression(prefix + '    ')
+        if self.right:
+            expr = expr + '\n' + self.right.save_tree_expression(prefix + '    ')
+
+        return expr
+    
+    def create_expression(self):
+
+        if self.node_value in FUNCTIONS:
+            l = '(' + self.left.create_expression() + ')'
+            r = '(' + self.right.create_expression() + ')'
+
+            return l + ' ' + MAPPING[self.node_label()] + ' ' + r
+        else:
+            return self.node_value
 
     def compute_tree(self, obs): 
         """
@@ -41,7 +61,7 @@ class GPTree:
 
 
         # Node is a function
-        if (self.node_value in FUNCTIONS): 
+        if self.node_value in FUNCTIONS: 
             return self.node_value(self.left.compute_tree(obs), self.right.compute_tree(obs))
         
         # Node is a terminal variable
@@ -57,7 +77,8 @@ class GPTree:
             
     def random_tree(self, grow, max_depth, depth = 0):
         """
-        Create random tree using either grow or full method
+        Create random tree using either grow or full method.
+        This tree will be rooted on the current tree root node.
         """
         # Get a random function
         if depth < MIN_DEPTH or (depth < max_depth and not grow): 

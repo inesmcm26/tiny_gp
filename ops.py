@@ -15,3 +15,10 @@ def div(x, y):
     return x / y
 
 FUNCTIONS = [add, sub, mul, div]
+
+MAPPING = {
+    'add': '+',
+    'sub': '-',
+    'mul': '*',
+    'div': '/'
+}
