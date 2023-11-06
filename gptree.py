@@ -4,10 +4,11 @@ from configs import *
 from ops import FUNCTIONS, MAPPING
 
 class GPTree:
-    def __init__(self, node_value = None, left = None, right = None):
+    def __init__(self, node_value = None, left = None, right = None, terminals = None):
         self.node_value  = node_value
         self.left  = left
         self.right = right
+        self.terminals = terminals
         
     def node_label(self):
         """
@@ -69,11 +70,17 @@ class GPTree:
             return self.node_value(self.left.compute_tree(obs), self.right.compute_tree(obs))
         
         # Node is a terminal variable
-        elif self.node_value.startswith('x'):
+        elif self.node_label().startswith('x'):
+
+            # print('NODE STARTS WITH X')
+            # print(self.node_label())
+
             # Get the variable index
-            variable_idx = int(self.node_value[1:])
+            variable_idx = int(self.node_label()[1:])
+            # print('VARIABLE IDX', variable_idx)
+            # print(obs)
             # Get the value of that variable
-            return obs[variable_idx]
+            return obs[variable_idx - 1] # Features are numbered from 1 to P
 
         # Node is a terminal constant
         else:
@@ -90,20 +97,20 @@ class GPTree:
 
         # Get a random terminal
         elif depth >= max_depth:   
-            self.node_value = TERMINALS[randint(0, len(TERMINALS)-1)]
+            self.node_value = self.terminals[randint(0, len(self.terminals)-1)]
         
         # Intermediate depth, grow
         else:
             if random () > 0.5: 
-                self.node_value = TERMINALS[randint(0, len(TERMINALS)-1)]
+                self.node_value = self.terminals[randint(0, len(self.terminals)-1)]
             else:
                 self.node_value = FUNCTIONS[randint(0, len(FUNCTIONS)-1)]
         
         # Generate sub trees
         if self.node_value in FUNCTIONS:
-            self.left = GPTree()          
+            self.left = GPTree(terminals = self.terminals)          
             self.left.random_tree(grow, max_depth, depth = depth + 1)            
-            self.right = GPTree()
+            self.right = GPTree(terminals = self.terminals)
             self.right.random_tree(grow, max_depth, depth = depth + 1)
 
     def mutation(self):
@@ -113,7 +120,7 @@ class GPTree:
 
         random_node_idx = [randint(1, self.size())]
 
-        new_subtree = GPTree()
+        new_subtree = GPTree(terminals = self.terminals)
         new_subtree.random_tree(grow = True, max_depth = 2) # TODO: change here the mutation hyperparameters
 
         # print('NEW SUBTREE')
@@ -133,7 +140,7 @@ class GPTree:
         """
         Number of nodes
         """
-        if self.node_value in TERMINALS:
+        if self.node_value in self.terminals:
             return 1
         
         l = self.left.size()  if self.left  else 0
@@ -144,7 +151,7 @@ class GPTree:
         """
         Builds a copy of the current tree
         """
-        t = GPTree()
+        t = GPTree(terminals = self.terminals)
         t.node_value = self.node_value
         if self.left: 
             t.left  = self.left.build_subtree()

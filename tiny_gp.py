@@ -1,14 +1,13 @@
 # tiny genetic programming by © moshe sipper, www.moshesipper.com
-from random import randint, seed, random
+from random import randint, random
 from statistics import mean
 from copy import deepcopy
 import numpy as np
 
 from configs import *
-from data import generate_dataset
 from gptree import GPTree
                    
-def init_population():
+def init_population(terminals):
     """
     Ramped half-and-half initialization
     """
@@ -25,7 +24,7 @@ def init_population():
         
         # Grow
         for _ in range(inds_per_depth):
-            ind = GPTree()
+            ind = GPTree(terminals = terminals)
             ind.random_tree(grow = True, max_depth = max_depth)
 
             # print('GROW')
@@ -36,7 +35,7 @@ def init_population():
         
         # Full
         for _ in range(inds_per_depth):
-            ind = GPTree()
+            ind = GPTree(terminals = terminals)
             ind.random_tree(grow = False, max_depth = max_depth)   
 
             # print('FULL')
@@ -51,7 +50,7 @@ def init_population():
         # Generate random tree with random method to fill population
         max_depth = randint(MIN_DEPTH, MAX_DEPTH)
         grow = True if random() < 0.5 else False
-        ind = GPTree()
+        ind = GPTree(terminals = terminals)
         ind.random_tree(grow = grow, max_depth = max_depth)
         pop.append(ind) 
 
@@ -88,27 +87,25 @@ def tournament(population, fitnesses):
     # Return the winner
     return deepcopy(population[tournament[tournament_fitnesses.index(min(tournament_fitnesses))]]) 
             
-def evolve():      
-    seed()
-    # TODO: get real dataset
-    train_dataset, test_dataset, train_target, test_target = generate_dataset()
+def evolve(train_dataset, test_dataset, train_target, test_target, terminals):      
 
     # print('DATASET')
     # print(dataset)
     # print('TARGET')
     # print(target)
 
-    population = init_population() 
+    population = init_population(terminals) 
 
     # print('POP SIZE', POP_SIZE)
     # print('LEN POP', len(population))
-
-    for ind in population:
-        print('IND')
-        ind.print_tree()
+    
+    # print('POPULATION:')
+    # for ind in population:
+    #     print('IND')
+    #     ind.print_tree()
         
-        print('ALG EXPR')
-        print(ind.create_expression())
+        # print('ALG EXPR')
+        # print(ind.create_expression())
 
 
         # print('PREDICTIONS')
@@ -170,9 +167,9 @@ def evolve():
             best_of_run_gen = gen
             best_of_run = deepcopy(population[train_fitnesses.index(min(train_fitnesses))])
 
-            print("________________________")
-            print("gen:", gen, ", best_of_run_f:", round(min(train_fitnesses), 3), ", best_of_run:") 
-            best_of_run.print_tree()
+            # print("________________________")
+            # print("gen:", gen, ", best_of_run_f:", round(min(train_fitnesses), 3), ", best_of_run:") 
+            # best_of_run.print_tree()
         
 
         best_train_fit_list.append(best_of_run_f)
@@ -185,11 +182,11 @@ def evolve():
     
     print("\n\n_________________________________________________\nEND OF RUN\nbest_of_run attained at gen " + str(best_of_run_gen) +\
           " and has f=" + str(round(best_of_run_f, 3)))
-    best_of_run.print_tree()
+    # best_of_run.print_tree()
 
     return best_train_fit_list, best_test_fit_list, best_ind_list, best_of_run_gen
     
-if __name__== "__main__":
-  best_train_fit_list, best_test_fit_list, best_ind_list, best_of_run_gen = evolve()
+# if __name__== "__main__":
+#   best_train_fit_list, best_test_fit_list, best_ind_list, best_of_run_gen = evolve()
 
-  print(best_train_fit_list, best_test_fit_list, best_ind_list, best_of_run_gen)
+#   print(best_train_fit_list, best_test_fit_list, best_ind_list, best_of_run_gen)
