@@ -59,7 +59,10 @@ def run_StdGP_all_ds():
     datasets = os.listdir(DATA_PATH)
 
     for dataset in datasets:
+        print(f'-------------------------------- DATASET {dataset} --------------------------------')
         run_stdGP(dataset)
 
 
-run_stdGP('Concrete')
+# run_stdGP('Concrete')
+
+run_StdGP_all_ds()

@@ -1,6 +1,5 @@
 # tiny genetic programming by © moshe sipper, www.moshesipper.com
 from random import randint, random
-from statistics import mean
 from copy import deepcopy
 import numpy as np
 
