@@ -5,6 +5,7 @@ import numpy as np
 
 from configs import *
 from gptree import GPTree
+from complexity_measures import IODC
                    
 def init_population(terminals):
     """
@@ -130,7 +131,7 @@ def evolve(train_dataset, test_dataset, train_target, test_target, terminals):
     best_train_fit_list = [best_of_run_f]
     best_ind_list = [best_of_run.create_expression()]
     best_test_fit_list = [fitness(best_of_run, test_dataset, test_target)]
-
+    iodc = [IODC(best_of_run, train_dataset)]
 
     for gen in range(1, GENERATIONS + 1):  
 
@@ -170,10 +171,10 @@ def evolve(train_dataset, test_dataset, train_target, test_target, terminals):
             # print("gen:", gen, ", best_of_run_f:", round(min(train_fitnesses), 3), ", best_of_run:") 
             # best_of_run.print_tree()
         
-
         best_train_fit_list.append(best_of_run_f)
         best_ind_list.append(best_of_run.create_expression())
         best_test_fit_list.append(fitness(best_of_run, test_dataset, test_target))
+        iodc.append(IODC(best_of_run, train_dataset))
 
         # Optimal solution found
         if best_of_run_f == 0:
@@ -183,7 +184,7 @@ def evolve(train_dataset, test_dataset, train_target, test_target, terminals):
           " and has f=" + str(round(best_of_run_f, 3)))
     # best_of_run.print_tree()
 
-    return best_train_fit_list, best_test_fit_list, best_ind_list, best_of_run_gen
+    return best_train_fit_list, best_test_fit_list, best_ind_list, best_of_run_gen, iodc
     
 # if __name__== "__main__":
 #   best_train_fit_list, best_test_fit_list, best_ind_list, best_of_run_gen = evolve()
