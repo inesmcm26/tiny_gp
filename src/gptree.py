@@ -20,7 +20,61 @@ class GPTree:
         else: 
             # Node is a terminal
             return str(self.node_value)
-    
+        
+    # def node_depth(self, node_idx, current_depth = 0):
+    #     if node_idx[0] == 1:
+    #         node_idx[0] -= 1
+
+    #         # print('REACHED NODE')
+    #         # print(self.node_label())
+    #         # print('DEPTH', current_depth)
+    #         return current_depth
+        
+    #     else:
+        
+    #         node_idx[0] -= 1
+            
+    #         ret = None              
+    #         if self.left:
+    #             # print('GOING LEFT')
+    #             ret = self.left.node_depth(node_idx, current_depth + 1)
+    #         if self.right and node_idx[0] > 0:
+    #             # print('GOING RIGHT. CURRENT NODE IDX', node_idx[0])
+    #             ret = self.right.node_depth(node_idx, current_depth + 1)
+            
+    #         return ret
+        
+    def node_depth(self, node_idx, current_idx = 1, current_depth = 0):
+        if node_idx == current_idx:
+
+            # print('REACHED NODE')
+            # print(self.node_label())
+            # print('DEPTH', current_depth)
+            return current_idx, current_depth
+        
+        else:
+
+            static_current_depth = current_depth
+
+            if self.left:
+                # print('GOING LEFT')
+                # print('CURRENT NODE LABEL', self.node_label())
+                current_idx, current_depth = self.left.node_depth(node_idx, current_idx + 1, static_current_depth + 1)
+
+            if self.right and current_idx != node_idx:
+                # print('GOING RIGHT. CURRENT NODE IDX', current_idx)
+                # print('CURRENT NODE LABEL', self.node_label())
+                current_idx, current_depth = self.right.node_depth(node_idx, current_idx + 1, static_current_depth + 1)
+                
+            return current_idx, current_depth
+        
+    def depth(self):
+
+        if self.node_value in self.terminals:
+            return 0
+        
+        return max(self.left.depth() + 1, self.right.depth() + 1)
+        
     def print_tree(self, prefix = ""):
         """
         Prints the tree expression
@@ -118,10 +172,15 @@ class GPTree:
         Standard one-point mutation
         """
 
+
         random_node_idx = [randint(1, self.size())]
+        
+        node_depth = self.node_depth(random_node_idx)
+
+        max_depth = MAX_DEPTH - node_depth
 
         new_subtree = GPTree(terminals = self.terminals)
-        new_subtree.random_tree(grow = True, max_depth = 2) # TODO: change here the mutation hyperparameters
+        new_subtree.random_tree(grow = True, max_depth = max_depth)
 
         # print('NEW SUBTREE')
         # new_subtree.print_tree()
