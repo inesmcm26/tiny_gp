@@ -1,4 +1,4 @@
-from random import random, randint
+from random import random, randint, choice
 
 from configs import *
 from ops import FUNCTIONS, MAPPING
@@ -67,6 +67,29 @@ class GPTree:
                 current_idx, current_depth = self.right.node_depth(node_idx, current_idx + 1, static_current_depth + 1)
                 
             return current_idx, current_depth
+        
+    def get_nodes_idx_above_depth(self, max_depth, current_node_idx = 1, current_depth = 0, nodes_list = []):
+        
+        # print('CURRENT NODE:', self.node_label())
+        # print('CURRENT NODE IDX', current_node_idx)
+        # print('CURRENT DEPTH', current_depth)
+        if current_depth < max_depth:
+            nodes_list.append(current_node_idx)
+        #     print('MAX DEPTH EXCEEDED')
+        #     return current_node_idx, nodes_list
+        
+        # else:
+            # print('NEW NODES LIST', nodes_list)
+        
+        if self.left:
+            # print('GOING LEFT')
+            current_node_idx, nodes_list =  self.left.get_nodes_idx_above_depth(max_depth, current_node_idx + 1, current_depth + 1, nodes_list)
+        if self.right:
+            # print('GOING RIGHT', self.node_label())
+            current_node_idx, nodes_list =  self.right.get_nodes_idx_above_depth(max_depth, current_node_idx + 1, current_depth + 1, nodes_list)
+
+        return current_node_idx, nodes_list
+
         
     def depth(self):
 
@@ -172,6 +195,9 @@ class GPTree:
         Standard one-point mutation
         """
 
+        print('ORIGINAL TREE')
+        self.print_tree()
+
         random_node_idx = randint(1, self.size())
 
         print('RANDOM NODE IDX', random_node_idx)
@@ -188,15 +214,7 @@ class GPTree:
         new_subtree.random_tree(grow = True, max_depth = max_depth)
 
         print('NEW SUBTREE')
-        new_subtree.print_tree
-
-        # print('NEW SUBTREE')
-        # new_subtree.print_tree()
-
-        # print('NODE INDEX:', random_node_idx)
-        
-        print('ORIGINAL TREE')
-        self.print_tree()
+        new_subtree.print_tree()        
 
         self.scan_tree([random_node_idx], new_subtree)
 
@@ -278,19 +296,66 @@ class GPTree:
         # self.print_tree()
         # print('SECOND TREE')
         # other.print_tree()
+        # print('------------')
         
         # Scan second tree to get the subtree
         random_node_idx_second = randint(1, other.size())
+
+        # print('SECOND TREE NODE IDX', random_node_idx_second)
+
+        random_node_depth = other.node_depth(random_node_idx_second)[1]
+
+        # print('SECOND TREE RANDOM NODE DEPTH', random_node_depth)
+
         # print('CHOOSEN NODE FROM SECOND TREE', random_node_idx_second)
-        second_subtree = other.scan_tree([random_node_idx_second], None) # 2nd random subtree
+        second_subtree = other.scan_tree([random_node_idx_second], None)
+
+        # print('SECOND SUBTREE')
+        # second_subtree.print_tree()
+
+        second_subtree_depth = second_subtree.depth()
+
+        # print('SECOND SUBTREE DEPTH', second_subtree_depth)
+
+        nodes_above_depth = self.get_nodes_idx_above_depth(MAX_DEPTH - (second_subtree_depth + 1) + 2, nodes_list=[])
+
+        # print('NODES FROM FIRST TREE ABOVE DEPTH', nodes_above_depth)
+
+        search_nodes_idx = []
+
+        for node_idx in nodes_above_depth[1]:
+            # print('UPPER BOUND = Maxima depth da primera subtree', MAX_DEPTH - (random_node_depth - 1) - 1)
+            # print('CURRENT NODE', node_idx)
+            subtree = self.scan_tree([node_idx], None)
+            # print('NODE DEPTH', subtree.depth())
+            if MAX_DEPTH - (random_node_depth - 1) - 1 >= subtree.depth():
+                search_nodes_idx.append(node_idx)
+            # else:
+            #     print('-------------------------------------------')
+            #     print('-------------------------------------------')
+            #     print('-------------------------------------------')
+            #     print('IMPOSSIBLE NODE')
+            #     print('NODE IDX', node_idx)
+            #     print('NODE DEPTH', subtree.depth())
+            #     print('SUBTREE')
+            #     subtree.print_tree()
+            #     print('-------------------------------------------')
+            #     print('-------------------------------------------')
+            #     print('-------------------------------------------')
+
+        # print('SEARCH NODES', search_nodes_idx)
 
         # print('SECOND SUBTREE')
         # second_subtree.print_tree()
         
         # Scan first tree to get the subtree
-        random_node_idx_first = randint(1, self.size())
+        random_node_idx_first = choice(search_nodes_idx)
+        # print('CHOOSEN RANDOM NODE', random_node_idx_first)
         # print('CHOOSEN NODE FROM FIRST TREE', random_node_idx_first)
-        first_subtree = self.scan_tree([random_node_idx_first], None) # 2nd random subtree
+        first_subtree = self.scan_tree([random_node_idx_first], None)
+
+        # print('FIRST SUBTREE')
+        # first_subtree.print_tree()
 
         # print('FIRST SUBTREE')
         # first_subtree.print_tree()
