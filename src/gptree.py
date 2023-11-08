@@ -172,28 +172,36 @@ class GPTree:
         Standard one-point mutation
         """
 
+        random_node_idx = randint(1, self.size())
 
-        random_node_idx = [randint(1, self.size())]
+        print('RANDOM NODE IDX', random_node_idx)
         
-        node_depth = self.node_depth(random_node_idx)
+        node_depth = self.node_depth(random_node_idx)[1]
+
+        print('NODE DEPTH', node_depth)
 
         max_depth = MAX_DEPTH - node_depth
 
+        print('MAX DEPTH', max_depth)
+
         new_subtree = GPTree(terminals = self.terminals)
         new_subtree.random_tree(grow = True, max_depth = max_depth)
+
+        print('NEW SUBTREE')
+        new_subtree.print_tree
 
         # print('NEW SUBTREE')
         # new_subtree.print_tree()
 
         # print('NODE INDEX:', random_node_idx)
         
-        # print('ORIGINAL TREE')
-        # self.print_tree()
+        print('ORIGINAL TREE')
+        self.print_tree()
 
-        self.scan_tree(random_node_idx, new_subtree)
+        self.scan_tree([random_node_idx], new_subtree)
 
-        # print('MUTATED TREE')
-        # self.print_tree()
+        print('MUTATED TREE')
+        self.print_tree()
 
     def size(self):
         """
