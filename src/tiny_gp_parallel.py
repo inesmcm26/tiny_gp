@@ -135,26 +135,15 @@ def evolve(train_dataset, test_dataset, train_target, test_target, terminals):
     best_of_run_gen = 0
     best_of_run = deepcopy(population[train_fitnesses.index(min(train_fitnesses))])
 
-    # # CROSSOVER TEST
-    # parent = tournament(population, train_fitnesses)
-    # parent2 = tournament(population, train_fitnesses)
-    # parent.crossover(parent2)
-
-    # # MUTATION TEST
-    # parent = tournament(population, train_fitnesses)
-    # parent.mutation()
-
     best_train_fit_list = [best_of_run_f]
     best_ind_list = [best_of_run.create_expression()]
     best_test_fit_list = [fitness(best_of_run, test_dataset, test_target)]
-
-    # start = time.time()
     iodc = [IODC(best_of_run, train_dataset)]
-    # print('INITIAL IODC TIME', time.time() - start)
-
-    # start = time.time()
     p_analysis = [polynomial_analysis(best_of_run)]
-    # print('INITIAL PANALYSIS TIME', time.time() - start)
+    overfit = [0]
+    btp = best_test_fit_list[0]
+    tbtp = best_of_run_f
+
 
     for gen in range(1, GENERATIONS + 1):  
         # print('------------------------------------------ NEW GEN ------------------------------------------')
@@ -225,22 +214,34 @@ def evolve(train_dataset, test_dataset, train_target, test_target, terminals):
             best_of_run_f = min(train_fitnesses)
             best_of_run_gen = gen
             best_of_run = deepcopy(population[train_fitnesses.index(min(train_fitnesses))])
+        
 
-            # print("________________________")
-            # print("gen:", gen, ", best_of_run_f:", round(min(train_fitnesses), 3), ", best_of_run:") 
-            # best_of_run.print_tree()
+        # ---------------------------------- Overfit ---------------------------------- #
+        # TODO: Confirm!
+        # Performance of the individual with the best train fitness in this generation
+        test_performance = fitness(deepcopy(population[train_fitnesses.index(min(train_fitnesses))]), test_dataset, test_target)
+
+        if min(train_fitnesses) > test_performance:
+            overfit.append(0)
+        else:
+            if test_performance < btp:
+                btp = test_performance
+                overfit.append(0)
+                tbtp = min(train_fitnesses)
+            else:
+                overfit.append(abs(min(train_fitnesses) - test_performance) - abs(tbtp - btp))
+            
+        # ---------------------------------------------------------------------------- #
+           
+        # print("________________________")
+        # print("gen:", gen, ", best_of_run_f:", round(min(train_fitnesses), 3), ", best_of_run:") 
+        # best_of_run.print_tree()
         
         best_train_fit_list.append(best_of_run_f)
         best_ind_list.append(best_of_run.create_expression())
-        best_test_fit_list.append(fitness(best_of_run, test_dataset, test_target))
-        
-        # start = time.time()
+        best_test_fit_list.append(test_performance)
         iodc.append(IODC(best_of_run, train_dataset))
-        # print('IODC TIME', time.time() - start)
-
-        # start = time.time()
         p_analysis.append(polynomial_analysis(best_of_run))
-        # print('PANALYSIS TIME', time.time() - start)
 
         # Optimal solution found
         if best_of_run_f == 0:
