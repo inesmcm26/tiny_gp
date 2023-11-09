@@ -24,31 +24,33 @@ def IODC(best_ind, dataset):
 
     # print('MEAN IODC', mean_iodc)
     
-    print('CORRELATION', corr)
+    # print('CORRELATION', corr)
     return corr
 
 
 def polynomial_analysis(best_ind):
 
-    # Define variables
-    x, y = sp.symbols('x y')
+    # terminals = ' '.join(best_ind.terminals)
+
+    # # [f'x{i}' for i in range(1, len(train_dataset[0]) + 1)]
+
+    # # Define variables
+    # x, y = sp.symbols(terminals)
 
     # Define the expression
-    expression = x**2 * (x/y + y**3 / (x + y))
+    expression = best_ind.create_expression()
+
+    # print('EXPRESSION', expression)
 
     # Expand the expression
     expanded_expression = sp.expand(expression)
 
     # Print the expanded expression
-    print("Expanded Expression:", expanded_expression)
+    # print("EXPANDED EXPRESSION", expanded_expression)
 
     # Identify terms to represent unique interactions
     unique_interactions = expanded_expression.as_ordered_terms()
 
-    # Print the unique interactions
-    print("Unique Interactions:")
-    for term in unique_interactions:
-        print(term)
+    # print('LEN UNIQUE INTERACTIONS', unique_interactions)
 
-
-
+    return len(unique_interactions)
