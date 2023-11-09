@@ -4,8 +4,6 @@ import pandas as pd
 NR_FEATS = 2
 TRAIN_PERC = 0.7
 
-seed(0)
-
 def target_func(obs): # evolution's target
     # x1 + x2 + x1*x2
     return obs[0] + obs[1] + obs[0]*obs[1]
