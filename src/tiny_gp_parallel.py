@@ -16,10 +16,6 @@ def init_population(terminals):
     # Number of individuals of each depth and initialized with each method
     inds_per_depth = int((POP_SIZE / (MAX_INITIAL_DEPTH + 1)) / 2)
 
-    # print('POP SIZE', POP_SIZE)
-    # print('MAX DEPTH', MAX_INITIAL_DEPTH)
-    # print('INDS PER DEPTH AND METHOD', inds_per_depth)
-
     pop = []
     for max_depth in range(MIN_DEPTH, MAX_INITIAL_DEPTH + 1):
         
@@ -27,21 +23,16 @@ def init_population(terminals):
         for _ in range(inds_per_depth):
             ind = GPTree(terminals = terminals)
             ind.random_tree(grow = True, max_depth = max_depth)
-
-            # print('GROW')
-            # print('IND')
-            # ind.print_tree()
+            ind.create_lambda_function() # CREATE LAMBDA FUNCTION HERE!
 
             pop.append(ind) 
         
         # Full
         for _ in range(inds_per_depth):
             ind = GPTree(terminals = terminals)
-            ind.random_tree(grow = False, max_depth = max_depth)   
+            ind.random_tree(grow = False, max_depth = max_depth)  
+            ind.create_lambda_function() # CREATE LAMBDA FUNCTION HERE!
 
-            # print('FULL')
-            # print('IND')
-            # ind.print_tree()
 
             pop.append(ind) 
 
@@ -53,16 +44,20 @@ def init_population(terminals):
         grow = True if random() < 0.5 else False
         ind = GPTree(terminals = terminals)
         ind.random_tree(grow = grow, max_depth = max_depth)
+        ind.create_lambda_function() # CREATE LAMBDA FUNCTION HERE!
         pop.append(ind) 
 
     return pop
 
 def fitness(individual, dataset, target):
 
-    start = time.time()
     # Calculate predictions
     preds = [individual.compute_tree(obs) for obs in dataset]
-    # print('PREDICTIONS TIME', time.time() - start)
+
+
+    # print('PREDICTIONS')
+    # individual.print_tree()
+    # print(preds)
     
     if FITNESS == 'RMSE':
         return np.sqrt(np.mean((np.array(preds) - np.array(target)) ** 2))
@@ -70,8 +65,6 @@ def fitness(individual, dataset, target):
     elif FITNESS == 'MAE':
         return np.mean(abs(np.array(preds) - np.array(target)))
     
-    #  # inverse mean absolute error over dataset normalized to [0,1]
-    # return 1 / (1 + mean([abs(individual.compute_tree(ds[0]) - ds[1]) for ds in dataset]))
                 
 def tournament(population, fitnesses):
     """
@@ -80,57 +73,30 @@ def tournament(population, fitnesses):
     # Select random individuals to compete
     tournament = [randint(0, len(population)-1) for _ in range(TOURNAMENT_SIZE)]
 
-    # print('INDEXES OF INDIVIDUALS TO GO TO TORNAMENT', tournament)
-
     # Get their fitness values
     tournament_fitnesses = [fitnesses[tournament[i]] for i in range(TOURNAMENT_SIZE)]
-
-    # print('IND FITNESSES', tournament_fitnesses)
     
     # Return the winner
     return deepcopy(population[tournament[tournament_fitnesses.index(min(tournament_fitnesses))]]) 
             
 def evolve(train_dataset, test_dataset, train_target, test_target, terminals):
 
-    # print('DATASET')
-    # print(dataset)
-    # print('TARGET')
-    # print(target)
+    # print('TRAIN DATASET')
+    # print(train_dataset)
 
     population = init_population(terminals) 
 
-    # ind = population[10]
-
-    # ind.print_tree()
-
-    # max_depth = randint(1, ind.depth())
-
-    # print('DEPTH FORAAAAA', max_depth)
-
-    # print('INDEXES FORAAAAA', ind.get_nodes_idx_above_depth(max_depth = max_depth))
-
-    # return
-
-    # print('POP SIZE', POP_SIZE)
-    # print('LEN POP', len(population))
-    
-    # print('POPULATION:')
     # for ind in population:
-        # print('IND')
-        # ind.print_tree()
-        
-        # print('ALG EXPR')
-        # print(ind.create_expression())
+    #     ind.print_tree()
+    #     print(ind.create_expression())
+    #     print(ind.tree_lambda.expr)
+    #     print('----------------------')
 
 
-        # print('PREDICTIONS')
-        # print([ind.compute_tree(obs) for obs in train_dataset])
-        # print('TARGET', target)
-        # print('FITNESS:', fitness(ind, train_dataset, target))
-    # start = time.time()
+
     train_fitnesses = [fitness(ind, train_dataset, train_target) for ind in population]
-    # print('INITIAL FITNESS EVALUATION TIME', time.time() - start)
 
+    print('----------------------------------------------------------- END ------------------------------------')
     best_of_run_f = min(train_fitnesses)
     best_of_run_gen = 0
     best_of_run = deepcopy(population[train_fitnesses.index(min(train_fitnesses))])
@@ -151,61 +117,97 @@ def evolve(train_dataset, test_dataset, train_target, test_target, terminals):
 
         new_pop=[]
 
-        # start = time.time()
         while len(new_pop) < POP_SIZE:
             
             prob = random()
-            # print('PROB', prob)
 
-            # start = time.time()
             parent = tournament(population, train_fitnesses)
-            # print('TOURNAMENT TIME', time.time() - start)
-
 
             # Crossover
             if prob < XO_RATE:
                 # print('CROSSOVER')
-                # start = time.time()
                 parent2 = tournament(population, train_fitnesses)
-                # print('SECOND TOURNAMENT TIME', time.time() - start)
 
-                # start = time.time()
                 parent.crossover(parent2)
-                # print('CROSSOVER TIME', time.time() - start)
-                # print('------')
+
+                # print('AFTER CROSSOVER')
+                # print('PARENT1')
+                # parent.print_tree()
+                # print(parent.create_expression())
+                # print(parent.tree_lambda.expr)
+                # print('PARENT2')
+                # parent2.print_tree()
+                # print(parent2.create_expression())
+                # print(parent2.tree_lambda.expr)
+
+
+                parent.create_lambda_function() # CREATE LAMBDA FUNCTION HERE!
+                parent2.create_lambda_function() # CREATE LAMBDA FUNCTION HERE!
+
+                # print('AFTER UPDATING LAMBDA FUNCTION')
+                # print('PARENT1')
+                # print(parent.create_expression())
+                # print(parent.tree_lambda.expr)
+                # print('PARENT2')
+                # print(parent2.create_expression())
+                # print(parent2.tree_lambda.expr)
+
+                # print('-----------------')
+
 
                 if parent.depth() > MAX_DEPTH or parent2.depth() > MAX_DEPTH:
                     raise Exception('Crossover generated an individual that exceeds depth.')
+                
+                new_pop.append(parent)
+
+                # if len(new_pop) < POP_SIZE:
+                #     new_pop.append(parent2)
 
             # Mutation
             elif prob < XO_RATE + PROB_MUTATION:
                 # start = time.time()
                 parent.mutation()
-                # print('MUTATION TIME', time.time() - start)
-
+                
+                # print('AFTER MUTATION')
                 # parent.print_tree()
+                # print(parent.create_expression())
+                # print(parent.tree_lambda.expr)
+                
+                # parent.create_lambda_function() # CREATE LAMBDA FUNCTION HERE!
 
-                # print('DEPTH AFTER MUTATION', parent.depth())
+                # print('AFTER UPDATING EXPRESSION')
+                # print(parent.create_expression())
+                # print(parent.tree_lambda.expr)
+
+                # print('--------------')
 
                 if parent.depth() > MAX_DEPTH:
                     raise Exception('Mutation generated an individual that exceeds depth.')
-
+                
+                new_pop.append(parent)
+            
             # NOTE: Replication may also occur if no condition is met
-
-            new_pop.append(parent)
+            else:
+                new_pop.append(parent)
             
         population = new_pop
-        # print('FILLED POPULATION TIME', time.time() - start)
 
-        # You can set the number of processes as desired
-        num_processes = 8
+        # print('NEW POPULATION')
+        # for ind in population:
+        #     ind.print_tree()
+        #     print(ind.create_expression())
+        #     print(ind.tree_lambda.expr)
+        #     print('----------------------')
 
-        pool = Pool(processes=num_processes)
 
-        # start = time.time()
-        train_fitnesses = pool.starmap(fitness, [(ind, train_dataset, train_target) for ind in population])
-        # train_fitnesses = [fitness(ind, train_dataset, train_target) for ind in population]
-        # print('END OF GEN FITNESS EVALUATION', time.time() - start)
+        train_fitnesses = [fitness(ind, train_dataset, train_target) for ind in population]
+        
+        # # You can set the number of processes as desired
+        # num_processes = 8
+
+        # pool = Pool(processes=num_processes)
+
+        # train_fitnesses = pool.starmap(fitness, [(ind, train_dataset, train_target) for ind in population])
 
         # pool.close()
         # pool.join()
