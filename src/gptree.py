@@ -1,7 +1,7 @@
 from random import random, randint, choice
 
 from configs import *
-from ops import FUNCTIONS, MAPPING, add, sub, mul, div
+from ops import FUNCTIONS, MAPPING, SAFE_MAPPING, add, sub, mul, div
 
 class GPTree:
     def __init__(self, node_value = None, left = None, right = None, terminals = None):
@@ -10,6 +10,7 @@ class GPTree:
         self.right = right
         self.terminals = terminals
         self.tree_lambda = None
+        self.safe_expr = None
         
     def node_label(self):
         """
@@ -76,6 +77,8 @@ class GPTree:
     def save_tree_expression(self, prefix = ''):
         """
         Same as print_tree but returns the string to be printed
+
+        Ignore
         """
         expr = prefix + self.node_label()
 
@@ -98,18 +101,23 @@ class GPTree:
         else:
             return self.node_value
         
-    def tree2string(self):
+    def tree2_string(self):
         if self.node_value in FUNCTIONS:
-            l = '(' + self.left.tree2string() + ')'
-            r = '(' + self.right.tree2string() + ')'
+            l = '(' + self.left.tree2_string() + ')'
+            r = '(' + self.right.tree2_string() + ')'
 
             return self.node_label() + f'({l}, {r})'
+
         else:
             return self.node_value
+
         
     def create_lambda_function(self):
+        """
+        Save lambda function as an attribute of the tree
+        """
 
-        string_expr = self.tree2string()
+        string_expr = self.tree2_string()
 
         self.tree_lambda = eval(f'lambda {", ".join(self.terminals)}: {string_expr}')
 
@@ -123,10 +131,9 @@ class GPTree:
             obs: np.array with observation values
         """
 
+        # Lambda function version
         return self.tree_lambda(*obs)
-
-
-
+    
         # # Node is a function
         # if self.node_value in FUNCTIONS: 
         #     return self.node_value(self.left.compute_tree(obs), self.right.compute_tree(obs))
@@ -186,6 +193,9 @@ class GPTree:
         new_subtree.random_tree(grow = True, max_depth = max_depth)  
 
         self.scan_tree([random_node_idx], new_subtree)
+
+        # self.create_safe_expression()
+        self.create_lambda_function()
 
     def size(self):
         """
@@ -268,3 +278,9 @@ class GPTree:
 
         self.scan_tree([random_node_idx_first], second_subtree)
         other.scan_tree([random_node_idx_second], first_subtree)
+
+        # self.create_safe_expression()
+        # other.create_safe_expression()
+
+        self.create_lambda_function()
+        other.create_lambda_function()

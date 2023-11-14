@@ -3,7 +3,7 @@ import pandas as pd
 from tqdm import tqdm
 
 from data import read_dataset
-from tiny_gp_parallel import evolve
+from tiny_gp import evolve
 from configs import GENERATIONS
 
 #####################################################
