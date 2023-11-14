@@ -1,7 +1,7 @@
 from random import random, randint, choice
 
 from configs import *
-from ops import FUNCTIONS, MAPPING, SAFE_MAPPING, add, sub, mul, div
+from ops import FUNCTIONS, MAPPING, add, sub, mul, div
 
 class GPTree:
     def __init__(self, node_value = None, left = None, right = None, terminals = None):
@@ -10,7 +10,7 @@ class GPTree:
         self.right = right
         self.terminals = terminals
         self.tree_lambda = None
-        self.safe_expr = None
+        self.expression = None
         
     def node_label(self):
         """
@@ -122,6 +122,7 @@ class GPTree:
         self.tree_lambda = eval(f'lambda {", ".join(self.terminals)}: {string_expr}')
 
         self.tree_lambda.expr = string_expr
+        self.expression = self.create_expression()
 
     def compute_tree(self, obs): 
         """
