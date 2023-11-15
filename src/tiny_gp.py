@@ -7,6 +7,7 @@ from multiprocessing import Pool
 from configs import *
 from gptree import GPTree
 from complexity_measures import init_IODC, IODC, mean_IODC, polynomial_analysis, mean_polynomial_analysis
+from complexity_measures import init_slope_based_complexity, slope_based_complexity, mean_slope_based_complexity
                    
 def init_population(terminals):
     """
@@ -86,13 +87,13 @@ def evolve(train_dataset, test_dataset, train_target, test_target, terminals):
     #     print(ind.tree_lambda.expr)
     #     print('----------------------')
 
-    # Upper bounds for complexity
+    # Upper bounds for complexities
     z, max_IODC = init_IODC(train_dataset, train_target)
+    max_slope_complexity = init_slope_based_complexity(train_dataset, train_target)
 
     train_fitnesses = [fitness(ind, train_dataset, train_target) for ind in population]
     test_fitnesses = [fitness(ind, test_dataset, test_target) for ind in population]
 
-    print('----------------------------------------------------------- END ------------------------------------')
     best_of_run_f = min(train_fitnesses)
     best_of_run_gen = 0
     best_of_run = deepcopy(population[train_fitnesses.index(min(train_fitnesses))])
@@ -102,20 +103,17 @@ def evolve(train_dataset, test_dataset, train_target, test_target, terminals):
     best_ind_list = [best_of_run.create_expression()]
     # Save test performance
     best_test_fit_list = [test_fitnesses[train_fitnesses.index(min(train_fitnesses))]]
-
-    if best_test_fit_list[0] != fitness(best_of_run, test_dataset, test_target):
-        raise Exception('Bad best test fitness calculation')
-    # best_test_fit_list = [fitness(best_of_run, test_dataset, test_target)]
-
     # Save mean train performance
     mean_train_fit_list = [np.mean(train_fitnesses)]
     mean_test_fit_list = [np.mean(test_fitnesses)]
     # Save complexities
     iodc = [IODC(max_IODC, z, best_of_run, train_dataset)]
     p_analysis = [polynomial_analysis(best_of_run)]
+    slope = [slope_based_complexity(max_slope_complexity, best_of_run, train_dataset)]
     # Save mean complexities
     mean_iodc = [mean_IODC(max_IODC, z, population, train_dataset)]
     mean_p_analysis = [mean_polynomial_analysis(population)]
+    mean_slope = [mean_slope_based_complexity(max_slope_complexity, population, train_dataset)]
     # Save overfitting
     overfit = [0]
     btp = best_test_fit_list[0]
@@ -227,6 +225,7 @@ def evolve(train_dataset, test_dataset, train_target, test_target, terminals):
         start = time.time()
         iodc.append(IODC(max_IODC, z, best_of_run, train_dataset))
         p_analysis.append(polynomial_analysis(best_of_run))
+        slope.append(slope_based_complexity(max_slope_complexity, best_of_run, train_dataset))
         print('BEST COMPLEXITIES DONE', time.time() - start)
 
         # Save mean complexities
@@ -238,6 +237,10 @@ def evolve(train_dataset, test_dataset, train_target, test_target, terminals):
         mean_p_analysis.append(mean_polynomial_analysis(population))
         print('MEAN POLYNOMIAL DONE', time.time() - start)
 
+        start = time.time()
+        mean_slope.append(mean_slope_based_complexity(max_slope_complexity, population, train_dataset))
+        print('MEAN SLOPE DONE', time.time() - start)
+
         # Optimal solution found
         if best_of_run_f == 0:
             break   
@@ -247,7 +250,7 @@ def evolve(train_dataset, test_dataset, train_target, test_target, terminals):
     # best_of_run.print_tree()
 
     return best_train_fit_list, best_test_fit_list, best_ind_list, best_of_run_gen, mean_train_fit_list, mean_test_fit_list, \
-        iodc, p_analysis, mean_iodc, mean_p_analysis
+        iodc, p_analysis, slope, mean_iodc, mean_p_analysis, mean_slope
     
 # if __name__== "__main__":
 #   best_train_fit_list, best_test_fit_list, best_ind_list, best_of_run_gen = evolve()

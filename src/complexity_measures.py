@@ -82,6 +82,42 @@ def mean_polynomial_analysis(population):
 def init_slope_based_complexity(dataset, target):
     complexity = 0
 
+    for j in range(dataset.shape[1]):
+
+        print('DIMENSION J =', j)
+        
+        # Values of feature j
+        p_j = dataset[:, j].flatten()
+
+        print('FEATURE VALUES', p_j)
+        
+        # List of the ordered indexes of feature j
+        q_j = np.argsort(p_j)
+
+        print('SORTED INDEXES', q_j)
+
+        pc_j = 0
+
+        for i in range(len(q_j) - 2):
+            idx = q_j[i]
+            next_idx = q_j[i + 1]
+            next_next_idx = q_j[i + 2]
+
+            pc_j += abs(((target[next_idx] - target[idx]) / (p_j[next_idx] - p_j[idx])) - \
+                ((target[next_next_idx] - target[next_idx]) / (p_j[next_next_idx] - p_j[next_idx])))
+
+        print('PC_J', pc_j)
+
+        complexity += pc_j
+
+    return complexity
+
+def slope_based_complexity(max_complexity, best_ind, dataset):
+
+    preds = [best_ind.compute_tree(obs) for obs in dataset]
+
+    complexity = 0
+
     for j in range(dataset.shape[0]):
         
         # Values of feature j
@@ -97,13 +133,53 @@ def init_slope_based_complexity(dataset, target):
             next_idx = q_j[i + 1]
             next_next_idx = q_j[i + 2]
 
-            pc_j += abs((target[next_idx] - target[idx]) / (p_j[next_idx] - p_j[idx]) - \
-                (target[next_next_idx] - target[next_idx]) / (p_j[next_next_idx] - p_j[next_idx]))
+            pc_j += abs(((preds[next_idx] - preds[idx]) / (p_j[next_idx] - p_j[idx])) - \
+                ((preds[next_next_idx] - preds[next_idx]) / (p_j[next_next_idx] - p_j[next_idx])))
 
         complexity += pc_j
 
-    return complexity
+    # Normalize complexity
+    return complexity / max_complexity
 
-def slope_based_complexity(max_complexity, best_ind, dataset):
 
-    preds = [[best_ind.compute_tree(obs)] for obs in dataset]
+def mean_slope_based_complexity(max_complexity, population, dataset):
+
+    complexities = {i : 0 for i in range(len(population))}
+
+    all_preds = []
+    
+    # Save predictions of each individual
+    for i in range(len(population)):
+        all_preds.append([population[i].compute_tree(obs) for obs in dataset])
+    
+    # For each dimension
+    for j in range(dataset.shape[1]):
+        p_j = dataset[:, j].flatten()
+            
+        # List of the ordered indexes of feature j
+        q_j = np.argsort(p_j)
+
+        # Calculate the partial complexity of each individual in that dimension
+        for i in range(len(population)):
+
+            preds = all_preds[i]
+
+            pc_j = 0
+
+            # Go through all observations
+            for i in range(len(q_j) - 2):
+                idx = q_j[i]
+                next_idx = q_j[i + 1]
+                next_next_idx = q_j[i + 2]
+
+                pc_j += abs(((preds[next_idx] - preds[idx]) / (p_j[next_idx] - p_j[idx])) - \
+                    ((preds[next_next_idx] - preds[next_idx]) / (p_j[next_next_idx] - p_j[next_idx])))
+
+            # Sum partial complexity to individual's complexity
+            complexities[i] += pc_j
+
+    complexs = np.array(list(complexities.values()))
+    
+    # Normalize by max complexity and return the mean
+    return np.mean(complexs / max_complexity)
+
