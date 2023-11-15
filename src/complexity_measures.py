@@ -42,6 +42,8 @@ def mean_IODC(max_IODC, z, population, dataset):
     iodcs = []
     for ind in population:
         iodcs.append(IODC(max_IODC, z, ind, dataset))
+    
+    return np.mean(iodcs)
 
 def polynomial_analysis(best_ind):
 
@@ -82,6 +84,11 @@ def mean_polynomial_analysis(population):
 def init_slope_based_complexity(dataset, target):
     complexity = 0
 
+    p_js = []
+    q_js = []
+
+    print('SHAPE', dataset.shape[1])
+
     for j in range(dataset.shape[1]):
 
         print('DIMENSION J =', j)
@@ -89,10 +96,14 @@ def init_slope_based_complexity(dataset, target):
         # Values of feature j
         p_j = dataset[:, j].flatten()
 
+        p_js.append(p_j)
+
         print('FEATURE VALUES', p_j)
         
         # List of the ordered indexes of feature j
         q_j = np.argsort(p_j)
+
+        q_js.append(q_j)
 
         print('SORTED INDEXES', q_j)
 
@@ -103,28 +114,48 @@ def init_slope_based_complexity(dataset, target):
             next_idx = q_j[i + 1]
             next_next_idx = q_j[i + 2]
 
-            pc_j += abs(((target[next_idx] - target[idx]) / (p_j[next_idx] - p_j[idx])) - \
-                ((target[next_next_idx] - target[next_idx]) / (p_j[next_next_idx] - p_j[next_idx])))
+            # TODO: 0 or continue when both are 0??
+
+            if p_j[next_idx] == p_j[idx]:
+                first = 0
+            else:
+                first = (target[next_idx] - target[idx]) / (p_j[next_idx] - p_j[idx])
+
+            if p_j[next_next_idx] == p_j[next_idx]:
+                second = 0
+            else:
+                second = (target[next_next_idx] - target[next_idx]) / (p_j[next_next_idx] - p_j[next_idx])
+
+            # print('FIRST', first)
+            # print('SECOND', second)
+
+            pc_j += abs(first - second)
 
         print('PC_J', pc_j)
 
         complexity += pc_j
+    
+    print('END INIT. MAX COMPLEXITY:', complexity)
+    return complexity, p_js, q_js
 
-    return complexity
-
-def slope_based_complexity(max_complexity, best_ind, dataset):
+def slope_based_complexity(max_complexity, p_js, q_js, best_ind, dataset):
 
     preds = [best_ind.compute_tree(obs) for obs in dataset]
 
     complexity = 0
 
-    for j in range(dataset.shape[0]):
+    for j in range(dataset.shape[1]):
+
+        print('FEATURE J =, j')
         
         # Values of feature j
-        p_j = dataset[:, j].flatten()
+        p_j = p_js[j]
+
+        print('FEATURE VALUES', p_j)
         
         # List of the ordered indexes of feature j
-        q_j = np.argsort(p_j)
+        q_j = q_js[j]
+        print('SORTED INDEXES')
 
         pc_j = 0
 
@@ -132,54 +163,85 @@ def slope_based_complexity(max_complexity, best_ind, dataset):
             idx = q_j[i]
             next_idx = q_j[i + 1]
             next_next_idx = q_j[i + 2]
+            
+            print('INDEX', idx)
 
-            pc_j += abs(((preds[next_idx] - preds[idx]) / (p_j[next_idx] - p_j[idx])) - \
-                ((preds[next_next_idx] - preds[next_idx]) / (p_j[next_next_idx] - p_j[next_idx])))
+            if p_j[next_idx] == p_j[idx]:
+                first = 0
+            else:
+                first = (preds[next_idx] - preds[idx]) / (p_j[next_idx] - p_j[idx])
+
+            if p_j[next_next_idx] == p_j[next_idx]:
+                second = 0
+            else:
+                second = (preds[next_next_idx] - preds[next_idx]) / (p_j[next_next_idx] - p_j[next_idx])
+
+            print('FIRST', first)
+            print('SECOND', second)
+
+            pc_j += abs(first - second)
 
         complexity += pc_j
 
     # Normalize complexity
     return complexity / max_complexity
 
+def mean_slope_based_complexity(max_complexity, p_js, q_js, population, dataset):
+    complexities = []
 
-def mean_slope_based_complexity(max_complexity, population, dataset):
+    for ind in population:
+        complexities.append(slope_based_complexity(max_complexity, p_js, q_js, ind, dataset))
 
-    complexities = {i : 0 for i in range(len(population))}
+    return np.mean(complexities)
 
-    all_preds = []
+
+# def mean_slope_based_complexity(max_complexity, p_js, q_js, population, dataset):
+
+#     complexities = {i : 0 for i in range(len(population))}
+
+#     all_preds = []
     
-    # Save predictions of each individual
-    for i in range(len(population)):
-        all_preds.append([population[i].compute_tree(obs) for obs in dataset])
+#     # Save predictions of each individual
+#     for i in range(len(population)):
+#         all_preds.append([population[i].compute_tree(obs) for obs in dataset])
     
-    # For each dimension
-    for j in range(dataset.shape[1]):
-        p_j = dataset[:, j].flatten()
+#     # For each dimension
+#     for j in range(dataset.shape[1]):
+#         p_j = p_js[j]
             
-        # List of the ordered indexes of feature j
-        q_j = np.argsort(p_j)
+#         # List of the ordered indexes of feature j
+#         q_j = q_js[j]
 
-        # Calculate the partial complexity of each individual in that dimension
-        for i in range(len(population)):
+#         # Calculate the partial complexity of each individual in that dimension
+#         for i in range(len(population)):
 
-            preds = all_preds[i]
+#             preds = all_preds[i]
 
-            pc_j = 0
+#             pc_j = 0
 
-            # Go through all observations
-            for i in range(len(q_j) - 2):
-                idx = q_j[i]
-                next_idx = q_j[i + 1]
-                next_next_idx = q_j[i + 2]
+#             # Go through all observations
+#             for i in range(len(q_j) - 2):
+#                 idx = q_j[i]
+#                 next_idx = q_j[i + 1]
+#                 next_next_idx = q_j[i + 2]
 
-                pc_j += abs(((preds[next_idx] - preds[idx]) / (p_j[next_idx] - p_j[idx])) - \
-                    ((preds[next_next_idx] - preds[next_idx]) / (p_j[next_next_idx] - p_j[next_idx])))
+#                 if p_j[next_idx] == p_j[idx]:
+#                     first = 0
+#                 else:
+#                     first = (preds[next_idx] - preds[idx]) / (p_j[next_idx] - p_j[idx])
 
-            # Sum partial complexity to individual's complexity
-            complexities[i] += pc_j
+#                 if p_j[next_next_idx] == p_j[next_idx]:
+#                     second = 0
+#                 else:
+#                     second = (preds[next_next_idx] - preds[next_idx]) / (p_j[next_next_idx] - p_j[next_idx])
 
-    complexs = np.array(list(complexities.values()))
+
+#                 pc_j += abs(first - second)
+
+#             # Sum partial complexity to individual's complexity
+#             complexities[i] += pc_j
+
+#     complexs = np.array(list(complexities.values()))
     
-    # Normalize by max complexity and return the mean
-    return np.mean(complexs / max_complexity)
-
+#     # Normalize by max complexity and return the mean
+#     return np.mean(complexs / max_complexity)
