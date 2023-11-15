@@ -133,18 +133,30 @@ def init_slope_based_complexity(dataset, target):
     print('END INIT. MAX COMPLEXITY:', complexity)
     return complexity
 
-def slope_based_complexity(max_complexity, p_js, q_js, best_ind, dataset):
+def slope_based_complexity(max_complexity, best_ind, dataset):
 
     preds = [best_ind.compute_tree(obs) for obs in dataset]
 
     complexity = 0
 
-    for j in range(dataset.shape[1]):        
+    for j in range(dataset.shape[1]):
+        
         # Values of feature j
-        p_j = p_js[j]
+        p_j = dataset[:, j].flatten()
+
+        # Get unique observations and their indices
+        unique_obs, inverse_indices = np.unique(p_j, return_inverse = True)
+        preds_sums = np.zeros_like(unique_obs, dtype = np.float64)
+        # Group by unique observations and average the target
+        np.add.at(preds_sums, inverse_indices, preds)
+        p_j = unique_obs
+        preds_j = preds_sums / np.bincount(inverse_indices)
+
+        print('UNIQUE OBS', p_j)
+        print('AVG TARGET', preds_j)
         
         # List of the ordered indexes of feature j
-        q_j = q_js[j]
+        q_j = np.argsort(p_j)
 
         pc_j = 0
 
@@ -153,16 +165,22 @@ def slope_based_complexity(max_complexity, p_js, q_js, best_ind, dataset):
             next_idx = q_j[i + 1]
             next_next_idx = q_j[i + 2]
 
+            # TODO: 0 or continue when both are 0??
+
             if p_j[next_idx] == p_j[idx]:
+                raise Exception('SOMETHING WRONG 1')
                 first = 0
             else:
-                first = (preds[next_idx] - preds[idx]) / (p_j[next_idx] - p_j[idx])
+                first = (preds_j[next_idx] - preds_j[idx]) / (p_j[next_idx] - p_j[idx])
 
             if p_j[next_next_idx] == p_j[next_idx]:
+                raise Exception('SOMETHING WRONG 2')
                 second = 0
             else:
-                second = (preds[next_next_idx] - preds[next_idx]) / (p_j[next_next_idx] - p_j[next_idx])
+                second = (preds_j[next_next_idx] - preds_j[next_idx]) / (p_j[next_next_idx] - p_j[next_idx])
 
+            print('FIRST', first)
+            print('SECOND', second)
             pc_j += abs(first - second)
 
         complexity += pc_j
@@ -177,55 +195,3 @@ def mean_slope_based_complexity(max_complexity, p_js, q_js, population, dataset)
         complexities.append(slope_based_complexity(max_complexity, p_js, q_js, ind, dataset))
 
     return np.mean(complexities)
-
-
-# def mean_slope_based_complexity(max_complexity, p_js, q_js, population, dataset):
-
-#     complexities = {i : 0 for i in range(len(population))}
-
-#     all_preds = []
-    
-#     # Save predictions of each individual
-#     for i in range(len(population)):
-#         all_preds.append([population[i].compute_tree(obs) for obs in dataset])
-    
-#     # For each dimension
-#     for j in range(dataset.shape[1]):
-#         p_j = p_js[j]
-            
-#         # List of the ordered indexes of feature j
-#         q_j = q_js[j]
-
-#         # Calculate the partial complexity of each individual in that dimension
-#         for i in range(len(population)):
-
-#             preds = all_preds[i]
-
-#             pc_j = 0
-
-#             # Go through all observations
-#             for i in range(len(q_j) - 2):
-#                 idx = q_j[i]
-#                 next_idx = q_j[i + 1]
-#                 next_next_idx = q_j[i + 2]
-
-#                 if p_j[next_idx] == p_j[idx]:
-#                     first = 0
-#                 else:
-#                     first = (preds[next_idx] - preds[idx]) / (p_j[next_idx] - p_j[idx])
-
-#                 if p_j[next_next_idx] == p_j[next_idx]:
-#                     second = 0
-#                 else:
-#                     second = (preds[next_next_idx] - preds[next_idx]) / (p_j[next_next_idx] - p_j[next_idx])
-
-
-#                 pc_j += abs(first - second)
-
-#             # Sum partial complexity to individual's complexity
-#             complexities[i] += pc_j
-
-#     complexs = np.array(list(complexities.values()))
-    
-#     # Normalize by max complexity and return the mean
-#     return np.mean(complexs / max_complexity)

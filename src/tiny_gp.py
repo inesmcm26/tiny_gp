@@ -89,7 +89,7 @@ def evolve(train_dataset, test_dataset, train_target, test_target, terminals):
 
     # Upper bounds for complexities
     z, max_IODC = init_IODC(train_dataset, train_target)
-    max_slope_complexity, p_js, q_js = init_slope_based_complexity(train_dataset, train_target)
+    max_slope_complexity = init_slope_based_complexity(train_dataset, train_target)
 
     train_fitnesses = [fitness(ind, train_dataset, train_target) for ind in population]
     test_fitnesses = [fitness(ind, test_dataset, test_target) for ind in population]
@@ -225,7 +225,7 @@ def evolve(train_dataset, test_dataset, train_target, test_target, terminals):
         start = time.time()
         iodc.append(IODC(max_IODC, z, best_of_run, train_dataset))
         p_analysis.append(polynomial_analysis(best_of_run))
-        slope.append(slope_based_complexity(max_slope_complexity, p_js, q_js, best_of_run, train_dataset))
+        slope.append(slope_based_complexity(max_slope_complexity, best_of_run, train_dataset))
         print('BEST COMPLEXITIES DONE', time.time() - start)
 
         # Save mean complexities
@@ -238,8 +238,13 @@ def evolve(train_dataset, test_dataset, train_target, test_target, terminals):
         print('MEAN POLYNOMIAL DONE', time.time() - start)
 
         start = time.time()
-        mean_slope.append(mean_slope_based_complexity(max_slope_complexity, p_js, q_js, population, train_dataset))
+        mean_slope.append(mean_slope_based_complexity(max_slope_complexity, population, train_dataset))
         print('MEAN SLOPE DONE', time.time() - start)
+
+        print('NEW BEST FINTESS', best_of_run_f)
+        print('IODC COMPLEXITY', iodc[-1])
+        print('POLYNOMIAL COMPLEXITY', p_analysis[-1])
+        print('SLOPE COMPLEXITY', slope[-1])
 
         # Optimal solution found
         if best_of_run_f == 0:
