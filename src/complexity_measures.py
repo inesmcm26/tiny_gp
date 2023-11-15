@@ -84,28 +84,24 @@ def mean_polynomial_analysis(population):
 def init_slope_based_complexity(dataset, target):
     complexity = 0
 
-    p_js = []
-    q_js = []
-
-    print('SHAPE', dataset.shape[1])
-
     for j in range(dataset.shape[1]):
-
-        print('DIMENSION J =', j)
         
         # Values of feature j
         p_j = dataset[:, j].flatten()
 
-        p_js.append(p_j)
+        # Get unique observations and their indices
+        unique_obs, inverse_indices = np.unique(p_j, return_inverse=True)
+        target_sums = np.zeros_like(unique_obs, dtype=np.float64)
+        # Group by unique observations and average the target
+        np.add.at(target_sums, inverse_indices, target)
+        p_j = unique_obs
+        target_j = target_sums / np.bincount(inverse_indices)
 
-        print('FEATURE VALUES', p_j)
+        print('UNIQUE OBS', p_j)
+        print('AVG TARGET', target_j)
         
         # List of the ordered indexes of feature j
         q_j = np.argsort(p_j)
-
-        q_js.append(q_j)
-
-        print('SORTED INDEXES', q_j)
 
         pc_j = 0
 
@@ -117,26 +113,25 @@ def init_slope_based_complexity(dataset, target):
             # TODO: 0 or continue when both are 0??
 
             if p_j[next_idx] == p_j[idx]:
+                raise Exception('SOMETHING WRONG 1')
                 first = 0
             else:
-                first = (target[next_idx] - target[idx]) / (p_j[next_idx] - p_j[idx])
+                first = (target_j[next_idx] - target_j[idx]) / (p_j[next_idx] - p_j[idx])
 
             if p_j[next_next_idx] == p_j[next_idx]:
+                raise Exception('SOMETHING WRONG 2')
                 second = 0
             else:
-                second = (target[next_next_idx] - target[next_idx]) / (p_j[next_next_idx] - p_j[next_idx])
+                second = (target_j[next_next_idx] - target_j[next_idx]) / (p_j[next_next_idx] - p_j[next_idx])
 
-            # print('FIRST', first)
-            # print('SECOND', second)
-
+            print('FIRST', first)
+            print('SECOND', second)
             pc_j += abs(first - second)
-
-        print('PC_J', pc_j)
 
         complexity += pc_j
     
     print('END INIT. MAX COMPLEXITY:', complexity)
-    return complexity, p_js, q_js
+    return complexity
 
 def slope_based_complexity(max_complexity, p_js, q_js, best_ind, dataset):
 
@@ -144,18 +139,12 @@ def slope_based_complexity(max_complexity, p_js, q_js, best_ind, dataset):
 
     complexity = 0
 
-    for j in range(dataset.shape[1]):
-
-        print('FEATURE J =, j')
-        
+    for j in range(dataset.shape[1]):        
         # Values of feature j
         p_j = p_js[j]
-
-        print('FEATURE VALUES', p_j)
         
         # List of the ordered indexes of feature j
         q_j = q_js[j]
-        print('SORTED INDEXES')
 
         pc_j = 0
 
@@ -163,8 +152,6 @@ def slope_based_complexity(max_complexity, p_js, q_js, best_ind, dataset):
             idx = q_j[i]
             next_idx = q_j[i + 1]
             next_next_idx = q_j[i + 2]
-            
-            print('INDEX', idx)
 
             if p_j[next_idx] == p_j[idx]:
                 first = 0
@@ -175,9 +162,6 @@ def slope_based_complexity(max_complexity, p_js, q_js, best_ind, dataset):
                 second = 0
             else:
                 second = (preds[next_next_idx] - preds[next_idx]) / (p_j[next_next_idx] - p_j[next_idx])
-
-            print('FIRST', first)
-            print('SECOND', second)
 
             pc_j += abs(first - second)
 
