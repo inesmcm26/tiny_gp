@@ -8,45 +8,96 @@ from gptree import GPTree
 
 hist = {}
 
-def init_target_hist():
+def init_target_hist(pop_hist_fitnesses, max_fitness):
+    hist = {}
 
     nr_bins = int((HIST_INITIAL_LIMIT / BIN_WIDTH))
-    bin_capacity = int(POP_SIZE / nr_bins)
+
+    if TARGET == 'FLAT':
+
+        bin_capacity = int(POP_SIZE / nr_bins)
+
+
+        for i in range(1, nr_bins + 1):
+            hist[i] = bin_capacity
+    
+    elif TARGET == 'DYN':
+
+        # Fitnesses are normalized for a minimization problem
+        all_fitnesses = {bin: np.mean(max_fitness - np.array(pop_hist_fitnesses[bin])) if len(pop_hist_fitnesses[bin]) > 0 else 0 for bin in pop_hist_fitnesses.keys()}
+        
+        for bin in range(1, nr_bins + 1):
+            hist[bin] = np.round(POP_SIZE *  (all_fitnesses[bin] / sum(all_fitnesses.values())))
+    
+    return hist
+
+def update_target_hist(pop_hist_fitnesses, max_fitness):
 
     hist = {}
 
-    for i in range(1, nr_bins + 1):
-        hist[i] = bin_capacity
+    all_fitnesses = {bin: np.mean(max_fitness - np.array(pop_hist_fitnesses[bin])) if len(pop_hist_fitnesses[bin]) > 0 else 0 for bin in pop_hist_fitnesses.keys()}
     
+    # BUG -> sometimes sums to > POPSIZE
+    # Fitnesses are normalized for a minimization problem   
+    for bin in pop_hist_fitnesses.keys():
+        hist[bin] = np.round(POP_SIZE *  (all_fitnesses[bin] / sum(all_fitnesses.values())))
+
+    if sum(hist.values()) < POP_SIZE:
+        print()
+        print()
+        print()
+        print('--------------------------------> TARGET < POP SIZE', sum(hist.values()))
+        print()
+        print()
+        print()
+
+    print('SUM', sum(hist.values()))
+    while sum(hist.values()) < POP_SIZE:
+        best_bin = max(hist, key = hist.get)
+        hist[best_bin] += 1
+
+    print('--------------------------------> AFTER', sum(hist.values()))
+
+    if sum(hist.values()) > POP_SIZE:
+        raise Exception('TARGETS > POP SIZE')
+
     return hist
 
 def reset_pop_hist(bins):
 
     hist = {}
+    hist_fitnesses = {}
 
     for bin in bins:
         hist[bin] = 0
-    
-    return hist
+        hist_fitnesses[bin] = []
 
-def init_hist(population):
+    
+    return hist, hist_fitnesses
+
+def init_hist(population, train_fitnesses):
     nr_bins = int((HIST_INITIAL_LIMIT / BIN_WIDTH))
 
     pop_hist = {}
+    pop_hist_fitness = {}
 
-    for ind in population:
+    for idx, ind in enumerate(population):
         ind_bin = ind.get_bin()
 
         if ind_bin in pop_hist.keys():
             pop_hist[ind_bin] += 1
+            pop_hist_fitness[ind_bin].append(train_fitnesses[idx])
         else:
             pop_hist[ind_bin] = 1
+            pop_hist_fitness[ind_bin] = [train_fitnesses[idx]]
+
 
     for i in range(1, nr_bins + 1):
         if i not in pop_hist.keys():
             pop_hist[i] = 0
+            pop_hist_fitness[i] = []
 
-    return pop_hist
+    return pop_hist, pop_hist_fitness
 
 def check_bin_capacity(target_hist, pop_hist, ind_bin, ind_fitness, best_of_run_f):
     """
@@ -71,7 +122,7 @@ def check_bin_capacity(target_hist, pop_hist, ind_bin, ind_fitness, best_of_run_
     
     return False
 
-def update_hist(target_hist, pop_hist, ind_bin):
+def update_hist(target_hist, pop_hist, pop_hist_fitness, ind_bin, ind_fitness):
     """
     When individual is added to the population, update the population histogram
     and maybe the target population when the new bine xceed the old upper bound
@@ -82,9 +133,11 @@ def update_hist(target_hist, pop_hist, ind_bin):
         # print('ADD NEW IND to bin', ind_bin)
         # print('ADD INDIVIDUAL TO BIN')
         pop_hist[ind_bin] += 1
+        pop_hist_fitness[ind_bin].append(ind_fitness)
 
-        # print('NEW POP HIST', pop_hist)
-        # print('NEW TARGET HIST', target_hist)
+        print('NEW POP HIST', pop_hist)
+        # print('NEW POP FITNESSES HIST', pop_hist_fitness)
+        print('NEW TARGET HIST', target_hist)
     
     else:
         print('ADD NEW BINS UNTIL', ind_bin)
@@ -92,13 +145,16 @@ def update_hist(target_hist, pop_hist, ind_bin):
         for new_bin in range(max(target_hist.keys()) + 1, ind_bin + 1):
             target_hist[new_bin] = 1
             pop_hist[new_bin] = 0
+            pop_hist_fitness[new_bin] = []
 
         pop_hist[ind_bin] = 1
+        pop_hist_fitness[ind_bin].append(ind_fitness)
 
         print('NEW POP HIST', pop_hist)
+        print('NEW POP FITNESSES HIST', pop_hist_fitness)
         print('NEW TARGET HIST', target_hist)
     
-    return target_hist, pop_hist
+    return target_hist, pop_hist, pop_hist_fitness
 
                    
 def init_population(terminals):
@@ -168,19 +224,21 @@ def tournament(population, fitnesses):
             
 def evolve(train_dataset, test_dataset, train_target, test_target, terminals):
 
-    target_hist = init_target_hist()
-
     population = init_population(terminals) 
 
-    pop_hist = init_hist(population)
+    train_fitnesses = [fitness(ind, train_dataset, train_target) for ind in population]
+
+    pop_hist, pop_hist_fitnesses = init_hist(population, train_fitnesses)
+
+    target_hist = init_target_hist(pop_hist_fitnesses, max(train_fitnesses))
 
     for ind in population:
         print('SIZE', ind.size())
 
     print('INITIAL POP HIST', pop_hist)
+    print('INITIAL POP FITNESS HIST', pop_hist_fitnesses)
     print('TARGET HIST', target_hist)
 
-    train_fitnesses = [fitness(ind, train_dataset, train_target) for ind in population]
     # test_fitnesses = [fitness(ind, test_dataset, test_target) for ind in population]
 
     best_of_run_f = min(train_fitnesses)
@@ -198,7 +256,7 @@ def evolve(train_dataset, test_dataset, train_target, test_target, terminals):
         print(gen)
 
         # Reset population histogram
-        pop_hist = reset_pop_hist(list(pop_hist.keys()))
+        pop_hist, pop_hist_fitnesses = reset_pop_hist(list(pop_hist.keys()))
 
         new_pop = []
         new_train_fitnesses = []
@@ -231,7 +289,7 @@ def evolve(train_dataset, test_dataset, train_target, test_target, terminals):
 
 
                     new_pop.append(parent)
-                    target_hist, pop_hist = update_hist(target_hist, pop_hist, parent.get_bin())
+                    target_hist, pop_hist, pop_hist_fitnesses = update_hist(target_hist, pop_hist, pop_hist_fitnesses, parent.get_bin(), parent_fitness)
                     new_train_fitnesses.append(parent_fitness)
 
                     if parent_fitness < best_of_run_f:
@@ -244,7 +302,7 @@ def evolve(train_dataset, test_dataset, train_target, test_target, terminals):
                     
 
                     new_pop.append(parent2)
-                    target_hist, pop_hist = update_hist(target_hist, pop_hist, parent2.get_bin())
+                    target_hist, pop_hist, pop_hist_fitnesses = update_hist(target_hist, pop_hist, pop_hist_fitnesses, parent2.get_bin(), parent2_fitness)
                     new_train_fitnesses.append(parent2_fitness)
 
                     if parent2_fitness < best_of_run_f:
@@ -268,7 +326,7 @@ def evolve(train_dataset, test_dataset, train_target, test_target, terminals):
                     
 
                     new_pop.append(parent)
-                    target_hist, pop_hist = update_hist(target_hist, pop_hist, parent.get_bin())
+                    target_hist, pop_hist, pop_hist_fitnesses = update_hist(target_hist, pop_hist, pop_hist_fitnesses, parent.get_bin(), parent_fitness)
                     new_train_fitnesses.append(parent_fitness)
 
                     if parent_fitness < best_of_run_f:
@@ -285,7 +343,7 @@ def evolve(train_dataset, test_dataset, train_target, test_target, terminals):
                                       best_of_run_f = best_of_run_f):
                     
                     new_pop.append(parent)
-                    target_hist, pop_hist = update_hist(target_hist, pop_hist, parent.get_bin())
+                    target_hist, pop_hist, pop_hist_fitnesses = update_hist(target_hist, pop_hist, pop_hist_fitnesses, parent.get_bin(), parent_fitness)
 
                     if parent_fitness < best_of_run_f:
                         best_of_run_f = parent_fitness
@@ -300,7 +358,10 @@ def evolve(train_dataset, test_dataset, train_target, test_target, terminals):
         print('NEW POP HIST')
         print(pop_hist)
 
-        # hist = recalculate_target_hist() # TODO
+        # print('NEW POP FITNESS HIST')
+        # print(pop_hist_fitnesses)
+
+        target_hist = update_target_hist(pop_hist_fitnesses, max(train_fitnesses)) # TODO
 
         # train_fitnesses = [fitness(ind, train_dataset, train_target) for ind in population]        
            
