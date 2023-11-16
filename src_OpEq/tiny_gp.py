@@ -11,7 +11,7 @@ hist = {}
 def init_target_hist():
 
     nr_bins = int((HIST_INITIAL_LIMIT / BIN_WIDTH))
-    bin_capacity = POP_SIZE / nr_bins
+    bin_capacity = int(POP_SIZE / nr_bins)
 
     hist = {}
 
@@ -20,12 +20,12 @@ def init_target_hist():
     
     return hist
 
-def reset_pop_hist(nr_bins):
+def reset_pop_hist(bins):
 
     hist = {}
 
-    for i in range(1, nr_bins + 1):
-        hist[i] = 0
+    for bin in bins:
+        hist[bin] = 0
     
     return hist
 
@@ -52,16 +52,21 @@ def check_bin_capacity(target_hist, pop_hist, ind_bin, ind_fitness, best_of_run_
     """
     Check if individual can be added to the population given the ideal target distribution
     """
+
     # If in range
     if ind_bin in pop_hist.keys():
         # Bin not full
         if pop_hist[ind_bin] < target_hist[ind_bin]:
+            # print('NOT FULL', pop_hist[ind_bin], '<', target_hist[ind_bin])
             return True
         # Full bin but best of run -> exceed capacity
         elif pop_hist[ind_bin] >= target_hist[ind_bin] and ind_fitness < best_of_run_f:
+            print('FULL BUT BEST OF RUN', ind_fitness, '<', best_of_run_f)
             return True
     # Out of range but best of run -> add new bin
     elif ind_fitness < best_of_run_f:
+        print('OUT OF RANGE BUT BEST OF RUN')
+        print(ind_fitness, '<', best_of_run_f)
         return True
     
     return False
@@ -71,19 +76,29 @@ def update_hist(target_hist, pop_hist, ind_bin):
     When individual is added to the population, update the population histogram
     and maybe the target population when the new bine xceed the old upper bound
     """
+
     # Check is exceeded. change target hist to have 1 between max and new max
     if ind_bin in pop_hist.keys():
+        # print('ADD NEW IND to bin', ind_bin)
+        # print('ADD INDIVIDUAL TO BIN')
         pop_hist[ind_bin] += 1
+
+        # print('NEW POP HIST', pop_hist)
+        # print('NEW TARGET HIST', target_hist)
     
     else:
+        print('ADD NEW BINS UNTIL', ind_bin)
         # Add new bins
         for new_bin in range(max(target_hist.keys()) + 1, ind_bin + 1):
             target_hist[new_bin] = 1
             pop_hist[new_bin] = 0
 
         pop_hist[ind_bin] = 1
+
+        print('NEW POP HIST', pop_hist)
+        print('NEW TARGET HIST', target_hist)
     
-    return pop_hist, target_hist
+    return target_hist, pop_hist
 
                    
 def init_population(terminals):
@@ -162,7 +177,8 @@ def evolve(train_dataset, test_dataset, train_target, test_target, terminals):
     for ind in population:
         print('SIZE', ind.size())
 
-    print(pop_hist)
+    print('INITIAL POP HIST', pop_hist)
+    print('TARGET HIST', target_hist)
 
     train_fitnesses = [fitness(ind, train_dataset, train_target) for ind in population]
     # test_fitnesses = [fitness(ind, test_dataset, test_target) for ind in population]
@@ -182,10 +198,10 @@ def evolve(train_dataset, test_dataset, train_target, test_target, terminals):
         print(gen)
 
         # Reset population histogram
-        pop_hist = reset_pop_hist(len(pop_hist.keys()))
-        
+        pop_hist = reset_pop_hist(list(pop_hist.keys()))
 
-        new_pop=[]
+        new_pop = []
+        new_train_fitnesses = []
 
         while len(new_pop) < POP_SIZE:
             
@@ -201,60 +217,92 @@ def evolve(train_dataset, test_dataset, train_target, test_target, terminals):
 
                 parent.crossover(parent2)
 
+                parent_fitness = fitness(parent, train_dataset, train_target)
+                parent2_fitness = fitness(parent2, train_dataset, train_target)
+
+
                 if parent.depth() > MAX_DEPTH or parent2.depth() > MAX_DEPTH:
                     raise Exception('Crossover generated an individual that exceeds depth.')
                 
-                if check_bin_capacity(target_hist, pop_hist, ind_size = parent.get_bin(),
-                                      ind_fitness = fitness(ind, train_dataset, train_target),
+                if check_bin_capacity(target_hist, pop_hist, ind_bin = parent.get_bin(),
+                                      ind_fitness = parent_fitness,
                                       best_of_run_f = best_of_run_f):
+                    
 
 
                     new_pop.append(parent)
                     target_hist, pop_hist = update_hist(target_hist, pop_hist, parent.get_bin())
+                    new_train_fitnesses.append(parent_fitness)
 
-                if len(new_pop) < POP_SIZE and check_bin_capacity(target_hist, pop_hist, ind_size = parent2.get_bin(),
-                                                                  ind_fitness = fitness(ind, train_dataset, train_target),
+                    if parent_fitness < best_of_run_f:
+                        best_of_run_f = parent_fitness
+                        best_of_run = deepcopy(parent)
+                
+                if len(new_pop) < POP_SIZE and check_bin_capacity(target_hist, pop_hist, ind_bin = parent2.get_bin(),
+                                                                  ind_fitness = parent2_fitness,
                                                                   best_of_run_f = best_of_run_f):
                     
 
                     new_pop.append(parent2)
                     target_hist, pop_hist = update_hist(target_hist, pop_hist, parent2.get_bin())
+                    new_train_fitnesses.append(parent2_fitness)
+
+                    if parent2_fitness < best_of_run_f:
+                        best_of_run_f = parent2_fitness
+                        best_of_run = deepcopy(parent2)
+
 
             # Mutation
             elif prob < XO_RATE + PROB_MUTATION:
 
                 parent.mutation()
 
+                parent_fitness = fitness(parent, train_dataset, train_target)
+
                 if parent.depth() > MAX_DEPTH:
                     raise Exception('Mutation generated an individual that exceeds depth.')
-                
-                if check_bin_capacity(target_hist, pop_hist, ind_size = parent.get_bin(),
-                                      ind_fitness = fitness(ind, train_dataset, train_target),
+
+                if check_bin_capacity(target_hist, pop_hist, ind_bin = parent.get_bin(),
+                                      ind_fitness = parent_fitness,
                                       best_of_run_f = best_of_run_f):
                     
 
                     new_pop.append(parent)
                     target_hist, pop_hist = update_hist(target_hist, pop_hist, parent.get_bin())
+                    new_train_fitnesses.append(parent_fitness)
+
+                    if parent_fitness < best_of_run_f:
+                        best_of_run_f = parent_fitness
+                        best_of_run = deepcopy(parent)
             
             # NOTE: Replication may also occur if no condition is met
             else:
-                if check_bin_capacity(target_hist, pop_hist, ind_size = parent.get_bin(),
-                                      ind_fitness = fitness(ind, train_dataset, train_target),
+
+                parent_fitness = fitness(parent, train_dataset, train_target)
+
+                if check_bin_capacity(target_hist, pop_hist, ind_bin = parent.get_bin(),
+                                      ind_fitness = fitness(parent, train_dataset, train_target),
                                       best_of_run_f = best_of_run_f):
                     
                     new_pop.append(parent)
                     target_hist, pop_hist = update_hist(target_hist, pop_hist, parent.get_bin())
+
+                    if parent_fitness < best_of_run_f:
+                        best_of_run_f = parent_fitness
+                        best_of_run = deepcopy(parent)
             
         population = new_pop
+        train_fitnesses = new_train_fitnesses
+
+        print('NEW TARGET HIST')
+        print(target_hist)
+
+        print('NEW POP HIST')
+        print(pop_hist)
 
         # hist = recalculate_target_hist() # TODO
 
-        train_fitnesses = [fitness(ind, train_dataset, train_target) for ind in population]
-        
-        if min(train_fitnesses) < best_of_run_f:
-            best_of_run_f = min(train_fitnesses)
-            best_of_run_gen = gen
-            best_of_run = deepcopy(population[train_fitnesses.index(min(train_fitnesses))])        
+        # train_fitnesses = [fitness(ind, train_dataset, train_target) for ind in population]        
            
         # print("________________________")
         # print("gen:", gen, ", best_of_run_f:", round(min(train_fitnesses), 3), ", best_of_run:") 
@@ -270,8 +318,7 @@ def evolve(train_dataset, test_dataset, train_target, test_target, terminals):
         if best_of_run_f == 0:
             break   
     
-    print("\n\n_________________________________________________\nEND OF RUN\nbest_of_run attained at gen " + str(best_of_run_gen) +\
-          " and has f=" + str(round(best_of_run_f, 3)))
+    print("\n\n_________________________________________________\nEND OF RUN\nbest_of_run has f=" + str(round(best_of_run_f, 3)))
     # best_of_run.print_tree()
 
     return best_train_fit_list, best_test_fit_list, best_ind_list, best_of_run_gen
