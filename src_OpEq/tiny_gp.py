@@ -28,6 +28,17 @@ def init_target_hist(pop_hist_fitnesses, max_fitness):
         
         for bin in range(1, nr_bins + 1):
             hist[bin] = np.round(POP_SIZE *  (all_fitnesses[bin] / sum(all_fitnesses.values())))
+
+        # TODO: CONFIRM THIS!
+        while sum(hist.values()) > POP_SIZE:
+            print('TARGET > POP SIZE')
+            best_bin = max(hist, key = hist.get)
+            hist[best_bin] -= 1
+        
+        while sum(hist.values()) < POP_SIZE:
+            print('TARGET < POP SIZE')
+            best_bin = max(hist, key = hist.get)
+            hist[best_bin] += 1
     
     return hist
 
@@ -35,31 +46,25 @@ def update_target_hist(pop_hist_fitnesses, max_fitness):
 
     hist = {}
 
+    # Fitnesses are normalized for a minimization problem   
     all_fitnesses = {bin: np.mean(max_fitness - np.array(pop_hist_fitnesses[bin])) if len(pop_hist_fitnesses[bin]) > 0 else 0 for bin in pop_hist_fitnesses.keys()}
     
-    # BUG -> sometimes sums to > POPSIZE
-    # Fitnesses are normalized for a minimization problem   
     for bin in pop_hist_fitnesses.keys():
-        hist[bin] = np.round(POP_SIZE *  (all_fitnesses[bin] / sum(all_fitnesses.values())))
-
-    if sum(hist.values()) < POP_SIZE:
-        print()
-        print()
-        print()
-        print('--------------------------------> TARGET < POP SIZE', sum(hist.values()))
-        print()
-        print()
-        print()
-
-    print('SUM', sum(hist.values()))
+        hist[bin] = int(np.round(POP_SIZE *  (all_fitnesses[bin] / sum(all_fitnesses.values()))))
+    
+    # TODO: CONFIRM THIS!
+    while sum(hist.values()) > POP_SIZE:
+        best_bin = max(hist, key = hist.get)
+        hist[best_bin] -= 1
+    
     while sum(hist.values()) < POP_SIZE:
         best_bin = max(hist, key = hist.get)
         hist[best_bin] += 1
 
-    print('--------------------------------> AFTER', sum(hist.values()))
 
-    if sum(hist.values()) > POP_SIZE:
-        raise Exception('TARGETS > POP SIZE')
+
+    if sum(hist.values()) > POP_SIZE or sum(hist.values()) < POP_SIZE:
+        raise Exception('TARGETS != POP SIZE. SUM =', sum(hist.values()))
 
     return hist
 
@@ -112,12 +117,12 @@ def check_bin_capacity(target_hist, pop_hist, ind_bin, ind_fitness, best_of_run_
             return True
         # Full bin but best of run -> exceed capacity
         elif pop_hist[ind_bin] >= target_hist[ind_bin] and ind_fitness < best_of_run_f:
-            print('FULL BUT BEST OF RUN', ind_fitness, '<', best_of_run_f)
+            # print('FULL BUT BEST OF RUN', ind_fitness, '<', best_of_run_f)
             return True
     # Out of range but best of run -> add new bin
     elif ind_fitness < best_of_run_f:
-        print('OUT OF RANGE BUT BEST OF RUN')
-        print(ind_fitness, '<', best_of_run_f)
+        # print('OUT OF RANGE BUT BEST OF RUN')
+        # print(ind_fitness, '<', best_of_run_f)
         return True
     
     return False
@@ -135,12 +140,12 @@ def update_hist(target_hist, pop_hist, pop_hist_fitness, ind_bin, ind_fitness):
         pop_hist[ind_bin] += 1
         pop_hist_fitness[ind_bin].append(ind_fitness)
 
-        print('NEW POP HIST', pop_hist)
+        # print('NEW POP HIST', pop_hist)
         # print('NEW POP FITNESSES HIST', pop_hist_fitness)
-        print('NEW TARGET HIST', target_hist)
+        # print('NEW TARGET HIST', target_hist)
     
     else:
-        print('ADD NEW BINS UNTIL', ind_bin)
+        # print('ADD NEW BINS UNTIL', ind_bin)
         # Add new bins
         for new_bin in range(max(target_hist.keys()) + 1, ind_bin + 1):
             target_hist[new_bin] = 1
@@ -150,9 +155,9 @@ def update_hist(target_hist, pop_hist, pop_hist_fitness, ind_bin, ind_fitness):
         pop_hist[ind_bin] = 1
         pop_hist_fitness[ind_bin].append(ind_fitness)
 
-        print('NEW POP HIST', pop_hist)
-        print('NEW POP FITNESSES HIST', pop_hist_fitness)
-        print('NEW TARGET HIST', target_hist)
+        # print('NEW POP HIST', pop_hist)
+        # print('NEW POP FITNESSES HIST', pop_hist_fitness)
+        # print('NEW TARGET HIST', target_hist)
     
     return target_hist, pop_hist, pop_hist_fitness
 
