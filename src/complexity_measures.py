@@ -96,9 +96,6 @@ def init_slope_based_complexity(dataset, target):
         np.add.at(target_sums, inverse_indices, target)
         p_j = unique_obs
         target_j = target_sums / np.bincount(inverse_indices)
-
-        print('UNIQUE OBS', p_j)
-        print('AVG TARGET', target_j)
         
         # List of the ordered indexes of feature j
         q_j = np.argsort(p_j)
@@ -112,20 +109,10 @@ def init_slope_based_complexity(dataset, target):
 
             # TODO: 0 or continue when both are 0??
 
-            if p_j[next_idx] == p_j[idx]:
-                raise Exception('SOMETHING WRONG 1')
-                first = 0
-            else:
-                first = (target_j[next_idx] - target_j[idx]) / (p_j[next_idx] - p_j[idx])
+            first = (target_j[next_idx] - target_j[idx]) / (p_j[next_idx] - p_j[idx])
 
-            if p_j[next_next_idx] == p_j[next_idx]:
-                raise Exception('SOMETHING WRONG 2')
-                second = 0
-            else:
-                second = (target_j[next_next_idx] - target_j[next_idx]) / (p_j[next_next_idx] - p_j[next_idx])
+            second = (target_j[next_next_idx] - target_j[next_idx]) / (p_j[next_next_idx] - p_j[next_idx])
 
-            print('FIRST', first)
-            print('SECOND', second)
             pc_j += abs(first - second)
 
         complexity += pc_j
@@ -151,9 +138,6 @@ def slope_based_complexity(max_complexity, best_ind, dataset):
         np.add.at(preds_sums, inverse_indices, preds)
         p_j = unique_obs
         preds_j = preds_sums / np.bincount(inverse_indices)
-
-        print('UNIQUE OBS', p_j)
-        print('AVG TARGET', preds_j)
         
         # List of the ordered indexes of feature j
         q_j = np.argsort(p_j)
@@ -179,8 +163,6 @@ def slope_based_complexity(max_complexity, best_ind, dataset):
             else:
                 second = (preds_j[next_next_idx] - preds_j[next_idx]) / (p_j[next_next_idx] - p_j[next_idx])
 
-            print('FIRST', first)
-            print('SECOND', second)
             pc_j += abs(first - second)
 
         complexity += pc_j
@@ -188,10 +170,10 @@ def slope_based_complexity(max_complexity, best_ind, dataset):
     # Normalize complexity
     return complexity / max_complexity
 
-def mean_slope_based_complexity(max_complexity, p_js, q_js, population, dataset):
+def mean_slope_based_complexity(max_complexity, population, dataset):
     complexities = []
 
     for ind in population:
-        complexities.append(slope_based_complexity(max_complexity, p_js, q_js, ind, dataset))
+        complexities.append(slope_based_complexity(max_complexity, ind, dataset))
 
     return np.mean(complexities)
