@@ -167,3 +167,11 @@ def update_hist(target_hist, pop_hist_fitness, ind_bin, ind_fitness):
         # print('NEW TARGET HIST', target_hist)
     
     return target_hist, pop_hist_fitness
+
+def get_population_len_histogram(population_fitness_histogram):
+    pop_len_hist = []
+    
+    for ind_bin in sorted(population_fitness_histogram.keys()):
+        pop_len_hist.append(len(population_fitness_histogram[ind_bin]))
+    
+    return pop_len_hist

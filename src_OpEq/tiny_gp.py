@@ -5,7 +5,7 @@ import time
 
 from configs_OpEq import *
 from gptree import GPTree
-from opEq import init_target_hist, init_hist, update_target_hist, reset_pop_hist, check_bin_capacity, update_hist
+from opEq import init_target_hist, init_hist, update_target_hist, reset_pop_hist, check_bin_capacity, update_hist, get_population_len_histogram
                    
 def init_population(terminals):
     """
@@ -109,7 +109,8 @@ def evolve(train_dataset, test_dataset, train_target, test_target, terminals):
     mean_size = [np.mean([ind.size() for ind in population])]
     # Save distributions
     target_histogram = [[target_hist[key] for key in sorted(target_hist.keys())]]
-    population_histogram = [[pop_hist_fitnesses[key] for key in sorted(pop_hist_fitnesses.keys())]]
+    #population_histogram = [[pop_hist_fitnesses[key] for key in sorted(pop_hist_fitnesses.keys())]]
+    population_histogram = [get_population_len_histogram(pop_hist_fitnesses)]
 
     for gen in range(1, GENERATIONS + 1):  
         # print('------------------------------------------ NEW GEN ------------------------------------------')
@@ -242,7 +243,8 @@ def evolve(train_dataset, test_dataset, train_target, test_target, terminals):
         mean_size.append(np.mean([ind.size() for ind in population]))
         # Save distributions
         target_histogram.append([target_hist[key] for key in sorted(target_hist.keys())])
-        population_histogram.append([pop_hist_fitnesses[key] for key in sorted(pop_hist_fitnesses.keys())])
+        #population_histogram.append([pop_hist_fitnesses[key] for key in sorted(pop_hist_fitnesses.keys())])
+        population_histogram.append(get_population_len_histogram(pop_hist_fitnesses))
 
         # Optimal solution found
         if best_of_run_f == 0:
