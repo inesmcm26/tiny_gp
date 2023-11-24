@@ -4,6 +4,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 
 RESULTS_PATH = '/home/ines/Documents/tese/tiny_gp/results/'
+OPEQ_RESULTS_PATH = '/home/ines/Documents/tese/tiny_gp/results_OpEq'
 
 def plot_learning_curves(dataset_name, gp_method):
     """
@@ -113,3 +114,35 @@ def complexity_overfitting_correlation(dataset_name):
 
     plt.legend() # Show the legend
     plt.show()
+    
+    
+    
+def plot_OpEq_distribution(dataset, type):
+    
+    all_columns = []
+    
+    datasets = [OPEQ_RESULTS_PATH + '/' + dataset + f'/{type}_histogram_run{i}.csv' for i in range(1, 31)]
+    
+    for ds in datasets:
+        df = pd.read_csv(ds)
+        all_columns = all_columns.extend(df.columns.values)
+        
+    all_columns = set(all_columns)
+    
+    all_dataframes = []
+        
+    for ds in datasets:
+        df = pd.read_csv(ds)
+        missing_columns = all_columns - set(df.columns.values)
+        
+        df[list(missing_columns)] = 0
+        
+        all_dataframes.append(df)
+        
+    all_data = pd.concat(all_dataframes, axis=1, join='outer')
+    
+    print(all_data)
+    print(all_data.columns)
+    
+    # mean_dataset = merged_dataset.mean(axis=1)
+    
