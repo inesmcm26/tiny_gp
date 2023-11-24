@@ -4,6 +4,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
+from plotly import io as pio
 
 RESULTS_PATH = '/home/ines/Documents/tese/tiny_gp/results/'
 OPEQ_RESULTS_PATH = '/home/ines/Documents/tese/tiny_gp/results_OpEq'
@@ -177,17 +178,16 @@ def plot_OpEq_distribution(dataset, type):
         bins = [int(bin.split('_')[-1]) for bin in df.columns.values]        
         z = df.values.T
         
-        print(z.shape)
-
-        fig = go.Figure(data=[go.Surface(z=z, x=generations, y=bins)])
+        fig = go.Figure(data=[go.Surface(z=z, x=generations, y=bins, coloraxis = "coloraxis")])
         fig.update_layout(scene=dict(
                         xaxis=dict(title='Generations'),
                         yaxis=dict(title='Bins'),
-                        zaxis=dict(title='Values', range=[0, 20]),
+                        zaxis=dict(title='Population Distribution' if type == 'population' else 'Target Distribution', range=[0, 20]),
                         ),
-                        title='Mt Bruno Elevation', autosize=False,
-                        width=500, height=500,
-                        margin=dict(l=65, r=50, b=65, t=90))
+                        title = dataset, autosize=False,
+                        width=800, height=700,
+                        margin=dict(l=40, r=40, b=40, t=60),
+                        coloraxis = {'colorscale':'agsunset'})
         fig.show()
     else:
         calculate_mean_histogram(dataset, type)
@@ -200,9 +200,25 @@ def plot_OpEq_all_distributions():
     datasets = os.listdir(OPEQ_RESULTS_PATH)
     # Create subplots
     cols = len(datasets)
-    fig = make_subplots(rows = 2, cols=cols, subplot_titles=[f'{datasets[i]}' for i in range(len(datasets))],
-                        specs=[[{'is_3d': True}, {'is_3d': True}, {'is_3d': True}, {'is_3d': True}],
-                               [{'is_3d': True}, {'is_3d': True}, {'is_3d': True}, {'is_3d': True}]])
+    fig = make_subplots(
+        rows = 2,
+        cols = cols,
+        subplot_titles = [f"{datasets[i]}" for i in range(len(datasets))],
+        specs = [
+            [{"type": 'scene'} for _ in range(cols)],
+            [{"type": 'scene'} for _ in range(cols)],
+        ],
+        horizontal_spacing = 0.0000001,  # Adjust the width as needed
+        vertical_spacing = 0.001, 
+        row_titles = ['Population Distribution', 'Target Distribution']
+    )
+
+    # Define the default camera position for each subplot
+    camera_params = dict(
+        center=dict(x=0, y=0, z=0),  # Center of the scene
+        eye=dict(x=1.5, y=1.5, z=1.5),      # Position of the camera
+        up=dict(x=0, y=0, z=1)        # Up vector
+    )
 
     for i, dataset_name in enumerate(datasets):
         
@@ -218,43 +234,47 @@ def plot_OpEq_all_distributions():
         df_pop = pd.read_csv(pop_hist_path, index_col=0)
         df_target = pd.read_csv(target_hist_path, index_col=0)
 
-        # Get the data
+        # Get the population data
         generations = df_pop.index.values
         pop_bins = [int(bin.split('_')[-1]) for bin in df_pop.columns.values]
         pop_z = df_pop.values.T
-
-        # Add surface to subplot
-        fig.add_trace(go.Surface(z = pop_z, x = generations, y = pop_bins), row = 1, col = i + 1)
-
-        # # Update layout for each subplot
-        # fig.update_layout(scene = dict(
-        #                 xaxis = dict(title = 'Generations'),
-        #                 yaxis = dict(title = 'Bins'),
-        #                 zaxis = dict(title = 'Population Frequency', range = [0, 20]),
-        #             ),
-        #             title = f'{dataset_name}',
-        #             autosize = False,
-        #             width = 1500, height = 500,
-        #             margin = dict(l = 65, r = 50, b = 65, t = 50)
-        #         )
-
+        
+        # Get the target data
         target_bins = [int(bin.split('_')[-1]) for bin in df_target.columns.values]
         target_z = df_target.values.T
 
-        # Add surface to subplot
-        fig.add_trace(go.Surface(z = target_z, x = generations, y = target_bins), row = 2, col = i + 1)
-
-        # # Update layout for each subplot
-        # fig.update_layout(scene = dict(
-        #                 xaxis = dict(title = 'Generations'),
-        #                 yaxis = dict(title = 'Bins'),
-        #                 zaxis = dict(title = 'Target Frequency', range = [0, 20]),
-        #             ),
-        #             title = f'{dataset_name}',
-        #             autosize = False,
-        #             width = 1500, height = 500,
-        #             margin = dict(l = 65, r = 50, b = 65, t = 50)
-        #         )
+        # Add subplots
+        fig.add_traces([go.Surface(z = pop_z, x = generations, y = pop_bins, coloraxis = "coloraxis"),
+                        go.Surface(z = target_z, x = generations, y = target_bins, coloraxis = "coloraxis")],
+                        rows = [1, 2], cols = [i+1, i+1])
         
+        fig.update_layout(
+            autosize=False,
+            width=2000,
+            height=1000,
+            margin=dict(
+                l=70,
+                r=70,
+                b=40,
+                t=40,
+                pad=0
+            ),
+            coloraxis = {'colorscale':'agsunset'}
+        )
+        
+        # Add the z-labels
+        fig.update_scenes(patch = dict(xaxis = dict(title_text = 'Generation'),
+                                       yaxis = dict(title_text = 'Bin'),
+                                       zaxis = dict(title_text = 'Population Frequency', range=[0, 40])),
+                          camera = camera_params,
+                          row = 1, col= i+1)
+        
+
+        fig.update_scenes(patch = dict(xaxis = dict(title_text = 'Generation'),
+                                       yaxis = dict(title_text = 'Bin'),
+                                       zaxis = dict(title_text = 'Target Frequency', range=[0, 40])),
+                          camera = camera_params,
+                          row = 2, col= i+1)
+                    
     # Show the plot
     fig.show()
