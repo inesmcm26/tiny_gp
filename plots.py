@@ -4,12 +4,12 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
-from plotly import io as pio
+import numpy as np
 
 RESULTS_PATH = '/home/ines/Documents/tese/tiny_gp/results/'
 OPEQ_RESULTS_PATH = '/home/ines/Documents/tese/tiny_gp/results_OpEq'
 
-def plot_learning_curves(dataset_name, gp_method):
+def plot_learning_curves_old(dataset_name, gp_method):
     """
     Plot the learning curves on train and test for all GP Methods on a given dataset
     """
@@ -38,11 +38,101 @@ def plot_learning_curves(dataset_name, gp_method):
     plt.legend() # Show the legend
     plt.show()
 
+def plot_learning_curves(dataset_name, gp_method):
+    """
+    Plot the learning curves on train and test for all GP Methods on a given dataset
+    """
+
+    gens_train, mean_train_best = avg_results(RESULTS_PATH + gp_method + f'/{dataset_name}/train.csv')
+    gens_test, mean_test_best = avg_results(RESULTS_PATH + gp_method + f'/{dataset_name}/test.csv')
+
+    # Plotting training curve
+    fig = go.Figure()
+
+    # fig.add_trace(go.Scatter(x = gens_train,
+    #                          y = mean_train_best + std_train,
+    #                          mode = 'lines',
+    #                          line = dict(color='blue', width = 0.1),
+    #                          showlegend = False))
+    
+    fig.add_trace(go.Scatter(x = gens_train,
+                             y = mean_train_best,
+                             mode = 'lines',
+                             name = f'{gp_method} Train',
+                             line = dict(color='blue')))
+    
+    # fig.add_trace(go.Scatter(x = gens_train,
+    #                          y = mean_train_best - std_train,
+    #                          mode = 'lines',
+    #                          line = dict(color='blue', width = 0.1),
+    #                          fill = 'tonexty',
+    #                          showlegend = False))
+    
+    # fig.add_trace(go.Scatter(x = gens_test,
+    #                          y = mean_test_best + std_test,
+    #                          mode = 'lines',
+    #                          line = dict(color='orange', width = 0.1),
+    #                          showlegend = False))
+    
+    fig.add_trace(go.Scatter(x = gens_test,
+                             y = mean_test_best,
+                             mode = 'lines',
+                             name = f'{gp_method} Test',
+                             line = dict(color='orange')))
+    
+    # fig.add_trace(go.Scatter(x = gens_test,
+    #                          y = mean_test_best - std_test,
+    #                          mode = 'lines',
+    #                          line = dict(color='orange', width = 0.1),
+    #                          fill = 'tonexty',
+    #                          showlegend = False))
+    
+    fig.update_layout(
+        xaxis = dict(title = 'Generation'),
+        yaxis = dict(title = 'RMSE'),
+        xaxis_tickvals = list(range(0, len(mean_train_best) + 1, 100)),
+        showlegend = True
+    )
+
+    fig.show()
+
+def plot_mean_learning_curves(dataset_name, gp_method):
+    """
+    Plot the learning curves on train and test for all GP Methods on a given dataset
+    """
+
+    gens_train, mean_train_best = avg_results(RESULTS_PATH + gp_method + f'/{dataset_name}/mean_train.csv')
+    gens_test, mean_test_best = avg_results(RESULTS_PATH + gp_method + f'/{dataset_name}/mean_test.csv')
+
+    # Plotting training curve
+    fig = go.Figure()
+    
+    fig.add_trace(go.Scatter(x = gens_train,
+                             y = mean_train_best,
+                             mode = 'lines',
+                             name = f'{gp_method} Mean Train',
+                             line = dict(color='blue')))
+    
+    fig.add_trace(go.Scatter(x = gens_test,
+                             y = mean_test_best,
+                             mode = 'lines',
+                             name = f'{gp_method} Mean Test',
+                             line = dict(color='orange')))
+    
+    fig.update_layout(
+        xaxis = dict(title = 'Generation'),
+        yaxis = dict(title = 'RMSE', type = 'log'),
+        xaxis_tickvals = list(range(0, len(mean_train_best) + 1, 100)),
+        showlegend = True
+    )
+
+    fig.show()
+
 def avg_results(path):
     df = pd.read_csv(path, index_col = 0)
-    return df.columns.values, df.mean().to_numpy()
+    return df.columns.values, df.median(axis = 0).to_numpy()
 
-def plot_complexities(dataset_name):
+def plot_complexities_old(dataset_name):
     """
     Plot the learning curves on train and test for all GP Methods on a given dataset
     """
@@ -54,7 +144,7 @@ def plot_complexities(dataset_name):
 
     for gp_method in os.listdir(RESULTS_PATH):
         gens_iodc, iodc_complexity = avg_results(RESULTS_PATH + gp_method + f'/{dataset_name}/iodc_complexity.csv')
-        gens_poly, poly_complexity = avg_results(RESULTS_PATH + gp_method + f'/{dataset_name}/polynomial_complexity.csv')
+        gens_poly, poly_complexity = avg_results(RESULTS_PATH + gp_method + f'/{dataset_name}/slope_based_complexity.csv')
 
         # Plotting training curve
         sns.lineplot(x='Generation', y='IODC Complexity',
@@ -62,8 +152,8 @@ def plot_complexities(dataset_name):
                      label=f'{gp_method} IODC',
                      ax = axes[0])
         
-        sns.lineplot(x='Generation', y='Polynomial Complexity',
-                     data = pd.DataFrame({'Generation': gens_poly, 'Polynomial Complexity' : poly_complexity}),
+        sns.lineplot(x='Generation', y='Slope Based Complexity',
+                     data = pd.DataFrame({'Generation': gens_poly, 'Slope Based Complexity' : poly_complexity}),
                      label=f'{gp_method} Polynomial',
                      ax = axes[1])
 
@@ -71,7 +161,7 @@ def plot_complexities(dataset_name):
     axes[0].set_xlabel('Generation')
     axes[0].set_ylabel('Complexity')
 
-    axes[1].set_title('Polynomial Complexity')
+    axes[1].set_title('Slope Based Complexity')
     axes[1].set_xlabel('Generation')
     axes[1].set_ylabel('Complexity')
 
@@ -80,6 +170,94 @@ def plot_complexities(dataset_name):
 
     plt.legend() # Show the legend
     plt.show()
+
+def plot_complexities(dataset_name, gp_method):
+    """
+    Plot the learning curves on train and test for all GP Methods on a given dataset
+    """
+
+    gens_iodc, iodc_complexity = avg_results(RESULTS_PATH + gp_method + f'/{dataset_name}/iodc_complexity.csv')
+    gens_slope, slope_complexity = avg_results(RESULTS_PATH + gp_method + f'/{dataset_name}/slope_based_complexity.csv')
+
+    # Plotting training curve
+    fig = go.Figure()
+    
+    fig.add_trace(go.Scatter(x = gens_iodc,
+                             y = iodc_complexity,
+                             mode = 'lines',
+                             name = f'{gp_method} IODC Complexity',
+                             line = dict(color='blue')))
+    
+    fig.add_trace(go.Scatter(x = gens_slope,
+                             y = slope_complexity,
+                             mode = 'lines',
+                             name = f'{gp_method} Slope Based Complexity',
+                             line = dict(color='orange')))
+    
+    fig.update_layout(
+        xaxis = dict(title = 'Generation'),
+        yaxis = dict(title = 'Complexity'),
+        xaxis_tickvals = list(range(0, len(gens_iodc) + 1, 100)),
+        showlegend = True
+    )
+
+    fig.show()
+
+def plot_learning_vs_complexity(dataset_name, gp_method):
+
+    fig = make_subplots(
+        rows = 1,
+        cols = 2,
+        subplot_titles = [f'{dataset_name} Learning Curves', f'{dataset_name} Complexities'],
+    )
+
+    gens_train, mean_train_best = avg_results(RESULTS_PATH + gp_method + f'/{dataset_name}/train.csv')
+    gens_test, mean_test_best = avg_results(RESULTS_PATH + gp_method + f'/{dataset_name}/test.csv')
+
+    fig.add_trace(go.Scatter(x = gens_train,
+                             y = mean_train_best,
+                             mode = 'lines',
+                             name = f'{gp_method} Best Train',
+                             line = dict(color='blue')),
+                             row = 1, col = 1)
+    
+    fig.add_trace(go.Scatter(x = gens_test,
+                             y = mean_test_best,
+                             mode = 'lines',
+                             name = f'{gp_method} Best Test',
+                             line = dict(color='orange')),
+                             row = 1, col = 1)
+
+    gens_iodc, iodc_complexity = avg_results(RESULTS_PATH + gp_method + f'/{dataset_name}/iodc_complexity.csv')
+    gens_slope, slope_complexity = avg_results(RESULTS_PATH + gp_method + f'/{dataset_name}/slope_based_complexity.csv')
+    
+
+    fig.add_trace(go.Scatter(x = gens_iodc,
+                             y = iodc_complexity,
+                             mode = 'lines',
+                             name = f'{gp_method} IODC',
+                             line = dict(color='red')),
+                             row = 1, col = 2)
+    
+    fig.add_trace(go.Scatter(x = gens_slope,
+                             y = slope_complexity,
+                             mode = 'lines',
+                             name = f'{gp_method} Slope',
+                             line = dict(color='green')),
+                             row = 1, col = 2)
+    
+    fig.update_layout(
+        autosize=False,
+        width=1200,
+        height=500,
+        margin=dict(l=40, r=20, b=70, t=70, pad=0),
+        showlegend = True,
+        legend=dict(x=0.5, y=-0.1, xanchor="center", orientation='h')
+    )
+
+    fig.show()
+    
+
 
 def complexity_overfitting_correlation(dataset_name):
     """
@@ -164,8 +342,7 @@ def calculate_mean_histogram(dataset, type):
 
     sorted_dataset.to_csv(OPEQ_RESULTS_PATH + '/' + dataset + f'/{type}_histogram.csv')
         
-        
-    
+
 def plot_OpEq_distribution(dataset, type):
     
     mean_histogram_path = OPEQ_RESULTS_PATH + '/' + dataset + f'/{type}_histogram.csv'
@@ -252,12 +429,7 @@ def plot_OpEq_all_distributions():
             autosize=False,
             width=2000,
             height=1000,
-            margin=dict(
-                l=70,
-                r=70,
-                b=40,
-                t=40,
-                pad=0
+            margin=dict( l=70, r=70, b=40, t=40, pad=0
             ),
             coloraxis = {'colorscale':'agsunset'}
         )
