@@ -9,35 +9,6 @@ import numpy as np
 RESULTS_PATH = '/home/ines/Documents/tese/tiny_gp/results/'
 OPEQ_RESULTS_PATH = '/home/ines/Documents/tese/tiny_gp/results_OpEq'
 
-def plot_learning_curves_old(dataset_name, gp_method):
-    """
-    Plot the learning curves on train and test for all GP Methods on a given dataset
-    """
-
-    sns.set_theme()
-
-    gens_train, train_results = avg_results(RESULTS_PATH + gp_method + f'/{dataset_name}/train.csv')
-    gens_test, test_results = avg_results(RESULTS_PATH + gp_method + f'/{dataset_name}/test.csv')
-
-    # Plotting training curve
-    sns.lineplot(x='Generation', y='Train Best Fitness',
-                    data = pd.DataFrame({'Generation': gens_train, 'Train Best Fitness' : train_results}),
-                    label=f'{gp_method} Train')
-    
-    sns.lineplot(x='Generation', y='Test Best Fitness',
-                    data = pd.DataFrame({'Generation': gens_test, 'Test Best Fitness' : test_results}),
-                    label=f'{gp_method} Test')
-
-    plt.xlabel('Generation')
-    plt.ylabel('Best Fitness')
-
-
-    plt.xticks(range(0, len(train_results) + 1, 10))
-    plt.xticks(range(0, len(train_results) + 1, 10))
-
-    plt.legend() # Show the legend
-    plt.show()
-
 def plot_learning_curves(dataset_name, gp_method):
     """
     Plot the learning curves on train and test for all GP Methods on a given dataset
@@ -132,45 +103,6 @@ def avg_results(path):
     df = pd.read_csv(path, index_col = 0)
     return df.columns.values, df.median(axis = 0).to_numpy()
 
-def plot_complexities_old(dataset_name):
-    """
-    Plot the learning curves on train and test for all GP Methods on a given dataset
-    """
-
-    sns.set_theme()
-
-    # Plotting multiple learning curves
-    fig, axes = plt.subplots(1, 2, figsize=(12, 6))  # Change the number of subplots and figure size as needed
-
-    for gp_method in os.listdir(RESULTS_PATH):
-        gens_iodc, iodc_complexity = avg_results(RESULTS_PATH + gp_method + f'/{dataset_name}/iodc_complexity.csv')
-        gens_poly, poly_complexity = avg_results(RESULTS_PATH + gp_method + f'/{dataset_name}/slope_based_complexity.csv')
-
-        # Plotting training curve
-        sns.lineplot(x='Generation', y='IODC Complexity',
-                     data = pd.DataFrame({'Generation': gens_iodc, 'IODC Complexity' : iodc_complexity}),
-                     label=f'{gp_method} IODC',
-                     ax = axes[0])
-        
-        sns.lineplot(x='Generation', y='Slope Based Complexity',
-                     data = pd.DataFrame({'Generation': gens_poly, 'Slope Based Complexity' : poly_complexity}),
-                     label=f'{gp_method} Polynomial',
-                     ax = axes[1])
-
-    axes[0].set_title('IODC Complexity')
-    axes[0].set_xlabel('Generation')
-    axes[0].set_ylabel('Complexity')
-
-    axes[1].set_title('Slope Based Complexity')
-    axes[1].set_xlabel('Generation')
-    axes[1].set_ylabel('Complexity')
-
-    axes[0].set_xticks(range(0, len(iodc_complexity) + 1, 10))
-    axes[1].set_xticks(range(0, len(poly_complexity) + 1, 10))
-
-    plt.legend() # Show the legend
-    plt.show()
-
 def plot_complexities(dataset_name, gp_method):
     """
     Plot the learning curves on train and test for all GP Methods on a given dataset
@@ -257,7 +189,62 @@ def plot_learning_vs_complexity(dataset_name, gp_method):
 
     fig.show()
     
+def plot_mean_learning_vs_complexity(dataset_name, gp_method):
 
+    fig = make_subplots(
+        rows = 1,
+        cols = 2,
+        subplot_titles = [f'{dataset_name} Mean Learning Curves', f'{dataset_name} Complexities'],
+    )
+
+    gens_train, mean_train_best = avg_results(RESULTS_PATH + gp_method + f'/{dataset_name}/mean_train.csv')
+    gens_test, mean_test_best = avg_results(RESULTS_PATH + gp_method + f'/{dataset_name}/mean_test.csv')
+
+    fig.add_trace(go.Scatter(x = gens_train,
+                             y = mean_train_best,
+                             mode = 'lines',
+                             name = f'{gp_method} Mean Train',
+                             line = dict(color='blue')),
+                             row = 1, col = 1)
+    
+    fig.add_trace(go.Scatter(x = gens_test,
+                             y = mean_test_best,
+                             mode = 'lines',
+                             name = f'{gp_method} Mean Test',
+                             line = dict(color='orange')),
+                             row = 1, col = 1)
+
+    gens_iodc, iodc_complexity = avg_results(RESULTS_PATH + gp_method + f'/{dataset_name}/mean_iodc_complexity.csv')
+    gens_slope, slope_complexity = avg_results(RESULTS_PATH + gp_method + f'/{dataset_name}/mean_slope_based_complexity.csv')
+    
+
+    fig.add_trace(go.Scatter(x = gens_iodc,
+                             y = iodc_complexity,
+                             mode = 'lines',
+                             name = f'{gp_method} Mean IODC',
+                             line = dict(color='red')),
+                             row = 1, col = 2)
+    
+    fig.add_trace(go.Scatter(x = gens_slope,
+                             y = slope_complexity,
+                             mode = 'lines',
+                             name = f'{gp_method} Mean Slope',
+                             line = dict(color='green')),
+                             row = 1, col = 2)
+    
+    fig.update_yaxes(type='log', row=1, col=1)
+    fig.update_yaxes(type='log', row=1, col=2)
+
+    fig.update_layout(
+        autosize=False,
+        width=1200,
+        height=500,
+        margin=dict(l=40, r=20, b=70, t=70, pad=0),
+        showlegend = True,
+        legend=dict(x=0.5, y=-0.1, xanchor="center", orientation='h')
+    )
+
+    fig.show()
 
 def complexity_overfitting_correlation(dataset_name):
     """
