@@ -36,7 +36,12 @@ def IODC(max_IODC, z, best_ind, dataset):
     # print('MEAN IODC', mean_iodc)
     
     # print('CORRELATION', corr)
-    return corr / max_IODC
+
+    # TODO: 1/ IODC -> To make a smaller IODC map to a higher complexity.
+    # DO THIS HERE OR IN THE CALCULATION OF IODC ITSELF?
+    # This makes the complexity range from 0 to infinity
+    # Above 1, the individual is more complex then the target solution
+    return 1/ (corr / max_IODC)
 
 def mean_IODC(max_IODC, z, population, dataset):
     iodcs = []
