@@ -5,8 +5,7 @@ from complexity_measures_new import IODC
 
 
 def get_bin(complexity, bin_width):
-    return np.ceil(complexity / bin_width)
-
+    return int(np.ceil(complexity / bin_width))
 
 #####################################################
 #                  Target Histogram                 #
@@ -127,22 +126,22 @@ def check_bin_capacity(target_hist, pop_fitness_hist, ind_bin, ind_fitness, best
     #     print(f"{key}: {len(value)}", end=' ')
     # print()
 
-    print('-> CHECK BIN CAPACITY')
-    print('IND BIN', ind_bin)
+    # print('-> CHECK BIN CAPACITY')
+    # print('IND BIN', ind_bin)
 
     # If in range
     if ind_bin in pop_fitness_hist.keys():
         # Bin not full
         if len(pop_fitness_hist[ind_bin]) < target_hist[ind_bin]:
-            print('NOT FULL', len(pop_fitness_hist[ind_bin]), '<', target_hist[ind_bin])
+            # print('NOT FULL', len(pop_fitness_hist[ind_bin]), '<', target_hist[ind_bin])
             return True
         # Full bin but best of run -> exceed capacity
         elif len(pop_fitness_hist[ind_bin]) >= target_hist[ind_bin] and ind_fitness < best_of_run_f:
-            print('FULL BUT BEST OF RUN', ind_fitness, '<', best_of_run_f)
+            # print('FULL BUT BEST OF RUN', ind_fitness, '<', best_of_run_f)
             return True
     # Out of range but still under max number iterations with no improvement -> add new bin
     elif nr_iter_no_improv < MAX_ITER_NO_IMPROV:
-        print('OUT OF RANGE. NR ITER NO IMPROV:', nr_iter_no_improv)
+        # print('OUT OF RANGE. NR ITER NO IMPROV:', nr_iter_no_improv)
         return True
     
     return False
@@ -155,17 +154,17 @@ def update_hist(target_hist, pop_hist_fitness, ind_bin, ind_fitness):
 
     # Existing bin
     if ind_bin in pop_hist_fitness.keys():
-        print('ADD NEW IND to bin', ind_bin)
+        # print('ADD NEW IND to bin', ind_bin)
         pop_hist_fitness[ind_bin].append(ind_fitness)
 
-        print('NEW POP HIST AVAILABILITY')
-        for key, value in pop_hist_fitness.items():
-            print(f"{key}: {len(value)}", end=' ')
-        print()
+        # print('NEW POP HIST AVAILABILITY')
+        # for key, value in pop_hist_fitness.items():
+        #     print(f"{key}: {len(value)}", end=' ')
+        # print()
     
     # New bin
     else:
-        print('ADD NEW BINS UNTIL', ind_bin)
+        # print('ADD NEW BINS UNTIL', ind_bin)
         # Add new bins
         for new_bin in range(max(target_hist.keys()) + 1, ind_bin + 1):
             target_hist[new_bin] = 1
@@ -173,12 +172,12 @@ def update_hist(target_hist, pop_hist_fitness, ind_bin, ind_fitness):
 
         pop_hist_fitness[ind_bin].append(ind_fitness)
 
-        print('NEW POP HIST AVAILABILITY')
-        for key, value in pop_hist_fitness.items():
-            print(f"{key}: {len(value)}", end=' ')
-        print()
+        # print('NEW POP HIST AVAILABILITY')
+        # for key, value in pop_hist_fitness.items():
+        #     print(f"{key}: {len(value)}", end=' ')
+        # print()
         
-        print('NEW TARGET HIST', target_hist)
+        # print('NEW TARGET HIST', target_hist)
     
     return target_hist, pop_hist_fitness
 

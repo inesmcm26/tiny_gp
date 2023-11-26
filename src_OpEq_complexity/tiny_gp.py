@@ -136,6 +136,7 @@ def evolve(train_dataset, test_dataset, train_target, test_target, terminals):
         new_train_fitnesses = []
 
         while len(new_pop) < POP_SIZE:
+            print('LEN NEW POP:', len(new_pop))
             
             prob = random()
 
@@ -161,7 +162,8 @@ def evolve(train_dataset, test_dataset, train_target, test_target, terminals):
 
                 if check_bin_capacity(target_hist, pop_hist_fitnesses, ind_bin = get_bin(parent_iodc, bin_width),
                                       ind_fitness = parent_fitness,
-                                      best_of_run_f = best_of_run_f):
+                                      best_of_run_f = best_of_run_f,
+                                      nr_iter_no_improv= nr_gen_no_improvement):
                     
 
                     # Add parent to population and to histograms
@@ -175,7 +177,8 @@ def evolve(train_dataset, test_dataset, train_target, test_target, terminals):
                 
                 if len(new_pop) < POP_SIZE and check_bin_capacity(target_hist, pop_hist_fitnesses, get_bin(parent2_iodc, bin_width),
                                                                   ind_fitness = parent2_fitness,
-                                                                  best_of_run_f = best_of_run_f):
+                                                                  best_of_run_f = best_of_run_f,
+                                                                  nr_iter_no_improv = nr_gen_no_improvement):
                     
 
                     new_pop.append(parent2)
@@ -200,7 +203,8 @@ def evolve(train_dataset, test_dataset, train_target, test_target, terminals):
 
                 if check_bin_capacity(target_hist, pop_hist_fitnesses, ind_bin = get_bin(parent_iodc, bin_width),
                                       ind_fitness = parent_fitness,
-                                      best_of_run_f = best_of_run_f):
+                                      best_of_run_f = best_of_run_f,
+                                      nr_iter_no_improv = nr_gen_no_improvement):
                     
 
                     new_pop.append(parent)
@@ -219,7 +223,8 @@ def evolve(train_dataset, test_dataset, train_target, test_target, terminals):
 
                 if check_bin_capacity(target_hist, pop_hist_fitnesses, ind_bin = get_bin(parent_iodc, bin_width),
                                       ind_fitness = fitness(parent, train_dataset, train_target),
-                                      best_of_run_f = best_of_run_f):
+                                      best_of_run_f = best_of_run_f,
+                                      nr_iter_no_improv = nr_gen_no_improvement):
                     
                     new_pop.append(parent)
                     target_hist, pop_hist_fitnesses = update_hist(target_hist, pop_hist_fitnesses, parent.get_bin(), parent_fitness)
@@ -242,6 +247,9 @@ def evolve(train_dataset, test_dataset, train_target, test_target, terminals):
 
         print('NEW TARGET HIST')
         print(target_hist)
+
+        print('BEST INDIVIDUAL BIN')
+        print(get_bin(IODC(max_IODC, z, best_of_run, train_dataset), bin_width))
 
         # train_fitnesses = [fitness(ind, train_dataset, train_target) for ind in population]        
            
