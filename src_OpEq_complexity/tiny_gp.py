@@ -2,9 +2,9 @@ from random import randint, random
 from copy import deepcopy
 import numpy as np
 
-from src_OpEq_complexity.configs_OpEq_complexity import *
+from configs_OpEq_complexity import *
 from gptree import GPTree
-from complexity_measures import init_IODC, IODC
+from complexity_measures_new import init_IODC, IODC
 from opEq import init_target_hist, init_hist, update_target_hist, reset_pop_hist, check_bin_capacity, update_hist, get_population_len_histogram, get_bin
                    
 def init_population(terminals):

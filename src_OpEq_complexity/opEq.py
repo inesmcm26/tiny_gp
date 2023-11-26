@@ -1,7 +1,7 @@
 import numpy as np
 
-from src_OpEq_complexity.configs_OpEq_complexity import *
-from src_OpEq_complexity.complexity_measures import IODC
+from configs_OpEq_complexity import *
+from complexity_measures_new import IODC
 
 
 def get_bin(complexity, bin_width):

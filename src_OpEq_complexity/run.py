@@ -5,7 +5,7 @@ import numpy as np
 
 from data import read_dataset
 from tiny_gp import evolve
-from src_OpEq_complexity.configs_OpEq_complexity import GENERATIONS
+from configs_OpEq_complexity import GENERATIONS
 
 #####################################################
 #                     StdGP Run                     #
@@ -14,7 +14,7 @@ from src_OpEq_complexity.configs_OpEq_complexity import GENERATIONS
 
 def run_stdGP(ds_name):
 
-    SAVE_PATH = f'/home/ines/Documents/tese/tiny_gp/results_OpEq/{ds_name}/'
+    SAVE_PATH = f'/home/ines/Documents/tese/tiny_gp/results_OpEq_complexity/{ds_name}/'
 
     # Check if the directory exists
     if not os.path.exists(SAVE_PATH):
