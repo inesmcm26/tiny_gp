@@ -7,7 +7,7 @@ from gptree import GPTree
 from complexity_measures_new import init_IODC, IODC
 from opEq import init_target_hist, init_hist, update_target_hist, reset_pop_hist, check_bin_capacity, update_hist, get_population_len_histogram, get_bin
                    
-def init_population(terminals):
+def init_population(terminals, max_IODC, z, train_dataset):
     """
     Ramped half-and-half initialization
     """
@@ -23,16 +23,18 @@ def init_population(terminals):
             ind = GPTree(terminals = terminals)
             ind.random_tree(grow = True, max_depth = max_depth)
             ind.create_lambda_function() # CREATE LAMBDA FUNCTION HERE!
-
-            pop.append(ind) 
+            
+            if IODC(max_IODC, z, ind, train_dataset) < MAX_COMPLEXITY:
+                pop.append(ind) 
         
         # Full
         for _ in range(inds_per_depth):
             ind = GPTree(terminals = terminals)
             ind.random_tree(grow = False, max_depth = max_depth)  
             ind.create_lambda_function() # CREATE LAMBDA FUNCTION HERE!
-
-            pop.append(ind) 
+            
+            if IODC(max_IODC, z, ind, train_dataset) < MAX_COMPLEXITY:
+                pop.append(ind) 
 
 
     # Edge case
@@ -43,7 +45,9 @@ def init_population(terminals):
         ind = GPTree(terminals = terminals)
         ind.random_tree(grow = grow, max_depth = max_depth)
         ind.create_lambda_function() # CREATE LAMBDA FUNCTION HERE!
-        pop.append(ind) 
+        
+        if IODC(max_IODC, z, ind, train_dataset) < MAX_COMPLEXITY:
+                pop.append(ind) 
 
     return pop
 
@@ -74,10 +78,10 @@ def tournament(population, fitnesses):
             
 def evolve(train_dataset, test_dataset, train_target, test_target, terminals):
 
-    population = init_population(terminals)
-    
     # Initialize IODC calculation
     z, max_IODC = init_IODC(train_dataset, train_target)
+    
+    population = init_population(terminals, max_IODC, z, train_dataset)
 
     # Initialize number of iterations with no val improvement
     nr_gen_no_improvement = 0
@@ -126,7 +130,7 @@ def evolve(train_dataset, test_dataset, train_target, test_target, terminals):
     population_histogram = [get_population_len_histogram(pop_hist_fitnesses)]
 
     for gen in range(1, GENERATIONS + 1):  
-        # print('------------------------------------------ NEW GEN ------------------------------------------')
+        print('------------------------------------------ NEW GEN ------------------------------------------')
         print(gen)
 
         # Reset population histogram
@@ -136,7 +140,7 @@ def evolve(train_dataset, test_dataset, train_target, test_target, terminals):
         new_train_fitnesses = []
 
         while len(new_pop) < POP_SIZE:
-            print('LEN NEW POP:', len(new_pop))
+            # print('LEN NEW POP:', len(new_pop))
             
             prob = random()
 
@@ -163,7 +167,7 @@ def evolve(train_dataset, test_dataset, train_target, test_target, terminals):
                 if check_bin_capacity(target_hist, pop_hist_fitnesses, ind_bin = get_bin(parent_iodc, bin_width),
                                       ind_fitness = parent_fitness,
                                       best_of_run_f = best_of_run_f,
-                                      nr_iter_no_improv= nr_gen_no_improvement):
+                                      ind_comp = parent_iodc):
                     
 
                     # Add parent to population and to histograms
@@ -178,7 +182,7 @@ def evolve(train_dataset, test_dataset, train_target, test_target, terminals):
                 if len(new_pop) < POP_SIZE and check_bin_capacity(target_hist, pop_hist_fitnesses, get_bin(parent2_iodc, bin_width),
                                                                   ind_fitness = parent2_fitness,
                                                                   best_of_run_f = best_of_run_f,
-                                                                  nr_iter_no_improv = nr_gen_no_improvement):
+                                                                  ind_comp = parent2_iodc):
                     
 
                     new_pop.append(parent2)
@@ -204,7 +208,7 @@ def evolve(train_dataset, test_dataset, train_target, test_target, terminals):
                 if check_bin_capacity(target_hist, pop_hist_fitnesses, ind_bin = get_bin(parent_iodc, bin_width),
                                       ind_fitness = parent_fitness,
                                       best_of_run_f = best_of_run_f,
-                                      nr_iter_no_improv = nr_gen_no_improvement):
+                                      ind_comp = parent_iodc):
                     
 
                     new_pop.append(parent)
@@ -224,7 +228,7 @@ def evolve(train_dataset, test_dataset, train_target, test_target, terminals):
                 if check_bin_capacity(target_hist, pop_hist_fitnesses, ind_bin = get_bin(parent_iodc, bin_width),
                                       ind_fitness = fitness(parent, train_dataset, train_target),
                                       best_of_run_f = best_of_run_f,
-                                      nr_iter_no_improv = nr_gen_no_improvement):
+                                      ind_comp = parent_iodc):
                     
                     new_pop.append(parent)
                     target_hist, pop_hist_fitnesses = update_hist(target_hist, pop_hist_fitnesses, parent.get_bin(), parent_fitness)

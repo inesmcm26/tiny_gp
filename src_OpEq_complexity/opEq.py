@@ -116,7 +116,7 @@ def init_hist(population, train_fitnesses, max_IODC, z, dataset):
 
     return pop_hist_fitness, bin_width
 
-def check_bin_capacity(target_hist, pop_fitness_hist, ind_bin, ind_fitness, best_of_run_f, nr_iter_no_improv):
+def check_bin_capacity(target_hist, pop_fitness_hist, ind_bin, ind_fitness, best_of_run_f, ind_comp):
     """
     Check if individual can be added to the population given the ideal target distribution
     """
@@ -140,9 +140,11 @@ def check_bin_capacity(target_hist, pop_fitness_hist, ind_bin, ind_fitness, best
             # print('FULL BUT BEST OF RUN', ind_fitness, '<', best_of_run_f)
             return True
     # Out of range but still under max number iterations with no improvement -> add new bin
-    elif nr_iter_no_improv < MAX_ITER_NO_IMPROV:
-        # print('OUT OF RANGE. NR ITER NO IMPROV:', nr_iter_no_improv)
+    elif ind_comp < 0.25:
         return True
+    # elif (ind_fitness < best_of_run_f) and (nr_iter_no_improv < MAX_ITER_NO_IMPROV):
+    #     print('OUT OF RANGE BUT BEST IND. NR ITER NO IMPROV:', nr_iter_no_improv)
+    #     return True
     
     return False
 
