@@ -132,6 +132,7 @@ def evolve(train_dataset, test_dataset, train_target, test_target, terminals):
     for gen in range(1, GENERATIONS + 1):  
         print('------------------------------------------ NEW GEN ------------------------------------------')
         print(gen)
+        print('NR GEN NO IMPROV:', nr_gen_no_improvement)
 
         # Reset population histogram
         pop_hist_fitnesses = reset_pop_hist(list(pop_hist_fitnesses.keys()))
@@ -226,7 +227,7 @@ def evolve(train_dataset, test_dataset, train_target, test_target, terminals):
 
                 parent_fitness = fitness(parent, train_dataset, train_target)
                 parent_iodc = IODC(max_IODC, z, parent, train_dataset)
-                
+
                 if check_bin_capacity(target_hist, pop_hist_fitnesses, ind_bin = get_bin(parent_iodc, bin_width),
                                       ind_fitness = fitness(parent, train_dataset, train_target),
                                       best_of_run_f = best_of_run_f,
