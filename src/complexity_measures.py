@@ -36,7 +36,7 @@ def IODC(max_IODC, z, best_ind, dataset):
     # print('MEAN IODC', mean_iodc)
     
     # print('CORRELATION', corr)
-    return corr / max_IODC
+    return 1 / (corr / max_IODC)
 
 def mean_IODC(max_IODC, z, population, dataset):
     iodcs = []

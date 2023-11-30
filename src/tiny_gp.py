@@ -6,7 +6,7 @@ from multiprocessing import Pool
 
 from configs import *
 from gptree import GPTree
-from complexity_measures import init_IODC, IODC, mean_IODC, polynomial_analysis, mean_polynomial_analysis
+from complexity_measures import init_IODC, IODC, mean_IODC
 from complexity_measures import init_slope_based_complexity, slope_based_complexity, mean_slope_based_complexity
                    
 def init_population(terminals):
@@ -89,7 +89,7 @@ def evolve(train_dataset, test_dataset, train_target, test_target, terminals):
 
     # Upper bounds for complexities
     z, max_IODC = init_IODC(train_dataset, train_target)
-    max_slope_complexity = init_slope_based_complexity(train_dataset, train_target)
+    # max_slope_complexity = init_slope_based_complexity(train_dataset, train_target)
 
     train_fitnesses = [fitness(ind, train_dataset, train_target) for ind in population]
     test_fitnesses = [fitness(ind, test_dataset, test_target) for ind in population]
@@ -109,11 +109,13 @@ def evolve(train_dataset, test_dataset, train_target, test_target, terminals):
     # Save complexities
     iodc = [IODC(max_IODC, z, best_of_run, train_dataset)]
     # p_analysis = [polynomial_analysis(best_of_run)]
-    slope = [slope_based_complexity(max_slope_complexity, best_of_run, train_dataset)]
+    # slope = [slope_based_complexity(max_slope_complexity, best_of_run, train_dataset)]
     # Save mean complexities
-    mean_iodc = [mean_IODC(max_IODC, z, population, train_dataset)]
+    iodc_distribution = [[IODC(max_IODC, z, ind, train_dataset) for ind in population]]
+    mean_iodc = [np.mean(iodc_distribution[0])]
     # mean_p_analysis = [mean_polynomial_analysis(population)]
-    mean_slope = [mean_slope_based_complexity(max_slope_complexity, population, train_dataset)]
+    # mean_slope = [mean_slope_based_complexity(max_slope_complexity, population, train_dataset)]
+    # Save complexity distribution
     # Save overfitting
     overfit = [0]
     btp = best_test_fit_list[0]
@@ -225,26 +227,25 @@ def evolve(train_dataset, test_dataset, train_target, test_target, terminals):
         start = time.time()
         iodc.append(IODC(max_IODC, z, best_of_run, train_dataset))
         # p_analysis.append(polynomial_analysis(best_of_run))
-        slope.append(slope_based_complexity(max_slope_complexity, best_of_run, train_dataset))
-        print('BEST COMPLEXITIES DONE', time.time() - start)
+        # slope.append(slope_based_complexity(max_slope_complexity, best_of_run, train_dataset))
+        # print('BEST COMPLEXITIES DONE', time.time() - start)
 
         # Save mean complexities
         start = time.time()
-        mean_iodc.append(mean_IODC(max_IODC, z, population, train_dataset))
-        print('MEAN IODC DONE', time.time() - start)
+        iodc_distribution.append([IODC(max_IODC, z, ind, train_dataset) for ind in population])
+        mean_iodc.append(np.mean(iodc_distribution[-1]))
 
         # start = time.time()
         # mean_p_analysis.append(mean_polynomial_analysis(population))
         # print('MEAN POLYNOMIAL DONE', time.time() - start)
 
-        start = time.time()
-        mean_slope.append(mean_slope_based_complexity(max_slope_complexity, population, train_dataset))
-        print('MEAN SLOPE DONE', time.time() - start)
+        # start = time.time()
+        # mean_slope.append(mean_slope_based_complexity(max_slope_complexity, population, train_dataset))
+        # print('MEAN SLOPE DONE', time.time() - start)
 
         print('NEW BEST FINTESS', best_of_run_f)
         print('IODC COMPLEXITY', iodc[-1])
-        # print('POLYNOMIAL COMPLEXITY', p_analysis[-1])
-        print('SLOPE COMPLEXITY', slope[-1])
+        print('IODC DISTRIBUTION', iodc_distribution[-1])
 
         # Optimal solution found
         if best_of_run_f == 0:
@@ -255,7 +256,7 @@ def evolve(train_dataset, test_dataset, train_target, test_target, terminals):
     # best_of_run.print_tree()
 
     return best_train_fit_list, best_test_fit_list, best_ind_list, best_of_run_gen, mean_train_fit_list, mean_test_fit_list, \
-        iodc, slope, mean_iodc, mean_slope
+        iodc, mean_iodc, iodc_distribution
     
 # if __name__== "__main__":
 #   best_train_fit_list, best_test_fit_list, best_ind_list, best_of_run_gen = evolve()
