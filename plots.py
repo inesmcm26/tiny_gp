@@ -5,9 +5,11 @@ import matplotlib.pyplot as plt
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import numpy as np
+import ast
 
 RESULTS_PATH = '/home/ines/Documents/tese/tiny_gp/results/'
 OPEQ_RESULTS_PATH = '/home/ines/Documents/tese/tiny_gp/results_OpEq'
+
 
 def plot_learning_curves(dataset_name, gp_method):
     """
@@ -19,12 +21,6 @@ def plot_learning_curves(dataset_name, gp_method):
 
     # Plotting training curve
     fig = go.Figure()
-
-    # fig.add_trace(go.Scatter(x = gens_train,
-    #                          y = mean_train_best + std_train,
-    #                          mode = 'lines',
-    #                          line = dict(color='blue', width = 0.1),
-    #                          showlegend = False))
     
     fig.add_trace(go.Scatter(x = gens_train,
                              y = mean_train_best,
@@ -32,31 +28,11 @@ def plot_learning_curves(dataset_name, gp_method):
                              name = f'{gp_method} Train',
                              line = dict(color='blue')))
     
-    # fig.add_trace(go.Scatter(x = gens_train,
-    #                          y = mean_train_best - std_train,
-    #                          mode = 'lines',
-    #                          line = dict(color='blue', width = 0.1),
-    #                          fill = 'tonexty',
-    #                          showlegend = False))
-    
-    # fig.add_trace(go.Scatter(x = gens_test,
-    #                          y = mean_test_best + std_test,
-    #                          mode = 'lines',
-    #                          line = dict(color='orange', width = 0.1),
-    #                          showlegend = False))
-    
     fig.add_trace(go.Scatter(x = gens_test,
                              y = mean_test_best,
                              mode = 'lines',
                              name = f'{gp_method} Test',
                              line = dict(color='orange')))
-    
-    # fig.add_trace(go.Scatter(x = gens_test,
-    #                          y = mean_test_best - std_test,
-    #                          mode = 'lines',
-    #                          line = dict(color='orange', width = 0.1),
-    #                          fill = 'tonexty',
-    #                          showlegend = False))
     
     fig.update_layout(
         xaxis = dict(title = 'Generation'),
@@ -437,3 +413,54 @@ def plot_OpEq_all_distributions():
                     
     # Show the plot
     fig.show()
+
+
+
+def plot_complexity_distribution_over_gens(dataset, bound_max_bin = None):
+    df = pd.read_csv(RESULTS_PATH + '/StdGP/' + dataset + '/iodc_distributions.csv', index_col = 0)
+
+    for col in df.columns:
+        df[col] = df[col].apply(ast.literal_eval)
+    
+    # Each column the values of all complexities in that generation over all runs
+    concatenated_data = df.apply(lambda x: x.sum(), axis=0)
+
+    if bound_max_bin is None:
+
+        # Find the highest ever complexity
+        max_bin = 0
+
+        for col in concatenated_data.columns:
+            if max(concatenated_data[col]) > max_bin:
+                max_bin = max(concatenated_data[col])
+    else:
+        max_bin = bound_max_bin
+
+    # Create bins with width 0.01
+    custom_bins = np.arange(0, np.ceil(max_bin), 0.01)
+
+    # Save distribution over generations
+    dist = []
+
+    for column in concatenated_data.columns:
+        counts, _ = np.histogram(concatenated_data.loc[:, column], bins=custom_bins)
+
+        dist.append(counts)
+
+    # Save distribution on a dataframe and save the ranges of the bins as index
+    histogram_over_gens = pd.DataFrame(dist).T
+    histogram_over_gens.index = custom_bins[1:]
+
+    # Save generations in X and bins in Y
+    x, y = histogram_over_gens.columns.values, histogram_over_gens.index.values
+    fig = go.Figure(data=[go.Surface(z=histogram_over_gens, y = y, x = x)])
+    fig.update_layout(title='Mt Bruno Elevation', autosize=False,
+                    width=500, height=500,
+                    margin=dict(l=65, r=50, b=65, t=90),
+                    scene=dict(
+                        xaxis=dict(title='Generations'),
+                        yaxis=dict(title='Bins'),
+                        zaxis=dict(title='Frequency'),
+                    ))
+    fig.show()
+
