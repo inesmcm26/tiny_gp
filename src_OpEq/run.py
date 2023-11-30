@@ -100,6 +100,8 @@ def run_stdGP(ds_name):
     test_results.to_csv(SAVE_PATH + 'test.csv')
     train_best_ind.to_csv(SAVE_PATH + 'best_ind.csv')
     best_of_run_generations.to_csv(SAVE_PATH + 'best_gen.csv')
+    best_size_results.to_csv(SAVE_PATH + 'best_ind_size.csv')
+    mean_size_results.to_csv(SAVE_PATH + 'mean_ind_size.csv')
     # mean_train_results.to_csv(SAVE_PATH + 'mean_train.csv')
     # mean_test_results.to_csv(SAVE_PATH + 'mean_test.csv')
     # iodc_results.to_csv(SAVE_PATH + 'iodc_complexity.csv')

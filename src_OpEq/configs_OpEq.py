@@ -1,8 +1,8 @@
-POP_SIZE            = 100   # population size
+POP_SIZE            = 200   # population size
 MIN_DEPTH           = 0    # minimal initial random tree depth
-MAX_INITIAL_DEPTH   = 4    # maximal initial random tree depth
+MAX_INITIAL_DEPTH   = 6    # maximal initial random tree depth
 MAX_DEPTH           = 17
-HIST_INITIAL_LIMIT  = 100 # maximal number of nodes
+HIST_INITIAL_LIMIT  = 300 # maximal number of nodes
 TARGET              = 'DYN'
 BIN_WIDTH           = 2
 GENERATIONS         = 50  # maximal number of generations to run evolution
