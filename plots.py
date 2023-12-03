@@ -8,8 +8,8 @@ import plotly.express as px
 import numpy as np
 import ast
 
-RESULTS_PATH = '/home/ines/Documents/tese/tiny_gp/results/'
-OPEQ_RESULTS_PATH = '/home/ines/Documents/tese/tiny_gp/results_OpEq'
+RESULTS_PATH = '/home/ines/Documents/tese/tiny_gp/results_initial/'
+OPEQ_RESULTS_PATH = '/home/ines/Documents/tese/tiny_gp/results_OpEq/'
 
 BIN_WIDTH = 0.01
 
@@ -19,8 +19,8 @@ def plot_learning_curves(dataset_name, gp_method):
     Plot the learning curves on train and test for all GP Methods on a given dataset
     """
 
-    gens_train, mean_train_best = avg_results(RESULTS_PATH + gp_method + f'/{dataset_name}/train.csv')
-    gens_test, mean_test_best = avg_results(RESULTS_PATH + gp_method + f'/{dataset_name}/test.csv')
+    gens_train, mean_train_best = avg_results(RESULTS_PATH + gp_method + f'/{dataset_name}/', 'train')
+    gens_test, mean_test_best = avg_results(RESULTS_PATH + gp_method + f'/{dataset_name}/', 'test')
 
     # Plotting training curve
     fig = go.Figure()
@@ -51,8 +51,8 @@ def plot_mean_learning_curves(dataset_name, gp_method):
     Plot the learning curves on train and test for all GP Methods on a given dataset
     """
 
-    gens_train, mean_train_best = avg_results(RESULTS_PATH + gp_method + f'/{dataset_name}/mean_train.csv')
-    gens_test, mean_test_best = avg_results(RESULTS_PATH + gp_method + f'/{dataset_name}/mean_test.csv')
+    gens_train, mean_train_best = avg_results(RESULTS_PATH + gp_method + f'/{dataset_name}/' , 'mean_train')
+    gens_test, mean_test_best = avg_results(RESULTS_PATH + gp_method + f'/{dataset_name}/', 'mean_test')
 
     # Plotting training curve
     fig = go.Figure()
@@ -78,8 +78,14 @@ def plot_mean_learning_curves(dataset_name, gp_method):
 
     fig.show()
 
-def avg_results(path):
-    df = pd.read_csv(path, index_col = 0)
+def avg_results(base_path, results_name):
+
+    df = pd.read_csv(base_path + f'{results_name}_run1.csv', index_col = 0)
+
+    for run_nr in range(2, 31):
+        df_run = pd.read_csv(base_path + f'{results_name}_run{run_nr}.csv', index_col = 0)
+        df = pd.concat([df, df_run], ignore_index = True)
+    
     return df.columns.values, df.median(axis = 0).to_numpy()
 
 def plot_complexities(dataset_name, gp_method):
@@ -87,8 +93,8 @@ def plot_complexities(dataset_name, gp_method):
     Plot the learning curves on train and test for all GP Methods on a given dataset
     """
 
-    gens_iodc, iodc_complexity = avg_results(RESULTS_PATH + gp_method + f'/{dataset_name}/iodc_complexity.csv')
-    gens_slope, slope_complexity = avg_results(RESULTS_PATH + gp_method + f'/{dataset_name}/slope_based_complexity.csv')
+    gens_iodc, iodc_complexity = avg_results(RESULTS_PATH + gp_method + f'/{dataset_name}/', 'iodc_complexity')
+    gens_slope, slope_complexity = avg_results(RESULTS_PATH + gp_method + f'/{dataset_name}/', 'slope_based_complexity')
 
     # Plotting training curve
     fig = go.Figure()
@@ -122,8 +128,8 @@ def plot_learning_vs_complexity(dataset_name, gp_method):
         subplot_titles = [f'{dataset_name} Learning Curves', f'{dataset_name} Complexities'],
     )
 
-    gens_train, mean_train_best = avg_results(RESULTS_PATH + gp_method + f'/{dataset_name}/train.csv')
-    gens_test, mean_test_best = avg_results(RESULTS_PATH + gp_method + f'/{dataset_name}/test.csv')
+    gens_train, mean_train_best = avg_results(RESULTS_PATH + gp_method + f'/{dataset_name}/', 'train')
+    gens_test, mean_test_best = avg_results(RESULTS_PATH + gp_method + f'/{dataset_name}/', 'test')
 
     fig.add_trace(go.Scatter(x = gens_train,
                              y = mean_train_best,
@@ -139,8 +145,8 @@ def plot_learning_vs_complexity(dataset_name, gp_method):
                              line = dict(color='orange')),
                              row = 1, col = 1)
 
-    gens_iodc, iodc_complexity = avg_results(RESULTS_PATH + gp_method + f'/{dataset_name}/iodc_complexity.csv')
-    gens_slope, slope_complexity = avg_results(RESULTS_PATH + gp_method + f'/{dataset_name}/slope_based_complexity.csv')
+    gens_iodc, iodc_complexity = avg_results(RESULTS_PATH + gp_method + f'/{dataset_name}/', 'iodc_complexity')
+    gens_slope, slope_complexity = avg_results(RESULTS_PATH + gp_method + f'/{dataset_name}/', 'slope_based_complexity')
     
 
     fig.add_trace(go.Scatter(x = gens_iodc,
@@ -176,8 +182,8 @@ def plot_mean_learning_vs_complexity(dataset_name, gp_method):
         subplot_titles = [f'{dataset_name} Mean Learning Curves', f'{dataset_name} Complexities'],
     )
 
-    gens_train, mean_train_best = avg_results(RESULTS_PATH + gp_method + f'/{dataset_name}/mean_train.csv')
-    gens_test, mean_test_best = avg_results(RESULTS_PATH + gp_method + f'/{dataset_name}/mean_test.csv')
+    gens_train, mean_train_best = avg_results(RESULTS_PATH + gp_method + f'/{dataset_name}/', 'mean_train')
+    gens_test, mean_test_best = avg_results(RESULTS_PATH + gp_method + f'/{dataset_name}/', 'mean_test')
 
     fig.add_trace(go.Scatter(x = gens_train,
                              y = mean_train_best,
@@ -193,8 +199,8 @@ def plot_mean_learning_vs_complexity(dataset_name, gp_method):
                              line = dict(color='orange')),
                              row = 1, col = 1)
 
-    gens_iodc, iodc_complexity = avg_results(RESULTS_PATH + gp_method + f'/{dataset_name}/mean_iodc_complexity.csv')
-    gens_slope, slope_complexity = avg_results(RESULTS_PATH + gp_method + f'/{dataset_name}/mean_slope_based_complexity.csv')
+    gens_iodc, iodc_complexity = avg_results(RESULTS_PATH + gp_method + f'/{dataset_name}/', 'mean_iodc_complexity')
+    gens_slope, slope_complexity = avg_results(RESULTS_PATH + gp_method + f'/{dataset_name}/', 'mean_slope_based_complexity')
     
 
     fig.add_trace(go.Scatter(x = gens_iodc,
@@ -235,9 +241,9 @@ def complexity_overfitting_correlation(dataset_name):
     # Plotting multiple learning curves
     fig, axes = plt.subplots(1, 2, figsize=(12, 6))  # Change the number of subplots and figure size as needed
 
-    gens_iodc, iodc_complexity = avg_results(RESULTS_PATH + 'StdGP' + f'/{dataset_name}/iodc_complexity.csv')
-    gens_poly, poly_complexity = avg_results(RESULTS_PATH + 'StdGP' + f'/{dataset_name}/polynomial_complexity.csv')
-    gens_overfitting, overfitting_results = avg_results(RESULTS_PATH + 'StdGP' + f'/{dataset_name}/overfitting.csv')
+    gens_iodc, iodc_complexity = avg_results(RESULTS_PATH + 'StdGP' + f'/{dataset_name}/', 'iodc_complexity')
+    gens_poly, poly_complexity = avg_results(RESULTS_PATH + 'StdGP' + f'/{dataset_name}/', 'polynomial_complexity')
+    gens_overfitting, overfitting_results = avg_results(RESULTS_PATH + 'StdGP' + f'/{dataset_name}/', 'overfitting')
     
     # Plotting training curve
     sns.scatterplot(x = 'IODC Complexity', y = 'Overfitting',
@@ -264,12 +270,19 @@ def complexity_overfitting_correlation(dataset_name):
 
 
 def plot_size_vs_fitness(dataset):
-    train_fitness = pd.read_csv(OPEQ_RESULTS_PATH + '/' + dataset + '/train.csv', index_col = 0)
 
-    mean_sizes = pd.read_csv(OPEQ_RESULTS_PATH + '/' + dataset + '/mean_ind_size.csv', index_col = 0)
+    train_fitness = pd.read_csv(OPEQ_RESULTS_PATH + dataset + f'/train_run1.csv', index_col = 0)
+    mean_sizes = pd.read_csv(OPEQ_RESULTS_PATH + dataset + f'/mean_size_run1.csv', index_col = 0)
+
+    for run_nr in range(2, 8):
+        train_fitness_run = pd.read_csv(OPEQ_RESULTS_PATH + dataset +  f'/train_run{run_nr}.csv', index_col = 0)
+        train_fitness = pd.concat([train_fitness, train_fitness_run], ignore_index = True)
+        
+        mean_sizes_run = pd.read_csv(OPEQ_RESULTS_PATH + dataset + f'/mean_size_run{run_nr}.csv', index_col = 0)
+        mean_sizes = pd.concat([mean_sizes, mean_sizes_run], ignore_index = True)
 
     df = pd.DataFrame()
-    df['Best Train Fitness'] = train_fitness.mean(axis = 0)
+    df['Best Train Fitness'] = train_fitness.median(axis = 0)
     df['Avg Size'] = mean_sizes.median(axis = 0)
 
     fig = px.line(df, x="Avg Size", y="Best Train Fitness", title='Best Training Fitness Vs Solution Length')
@@ -280,7 +293,7 @@ def calculate_mean_histogram(dataset, type):
     
     all_columns = []
         
-    datasets = [OPEQ_RESULTS_PATH + '/' + dataset + f'/{type}_histogram_run{i}.csv' for i in range(1, 27)]
+    datasets = [OPEQ_RESULTS_PATH + dataset + f'/{type}_histogram_run{i}.csv' for i in range(1, 31)]
 
     for ds in datasets:
         df = pd.read_csv(ds, index_col= 0)
@@ -320,12 +333,12 @@ def calculate_mean_histogram(dataset, type):
 
     sorted_dataset = mean_df[sorted_columns]
 
-    sorted_dataset.to_csv(OPEQ_RESULTS_PATH + '/' + dataset + f'/{type}_histogram.csv')
+    sorted_dataset.to_csv(OPEQ_RESULTS_PATH + dataset + f'/{type}_histogram.csv')
         
 
 def plot_OpEq_distribution(dataset, type):
     
-    mean_histogram_path = OPEQ_RESULTS_PATH + '/' + dataset + f'/{type}_histogram.csv'
+    mean_histogram_path = OPEQ_RESULTS_PATH + dataset + f'/{type}_histogram.csv'
     
     if os.path.exists(mean_histogram_path):
         df = pd.read_csv(mean_histogram_path, index_col = 0)
@@ -379,8 +392,8 @@ def plot_OpEq_all_distributions():
 
     for i, dataset_name in enumerate(datasets):
         
-        pop_hist_path = OPEQ_RESULTS_PATH + '/' + dataset_name + '/population_histogram.csv'
-        target_hist_path = OPEQ_RESULTS_PATH + '/' + dataset_name + '/target_histogram.csv'
+        pop_hist_path = OPEQ_RESULTS_PATH + dataset_name + '/population_histogram.csv'
+        target_hist_path = OPEQ_RESULTS_PATH + dataset_name + '/target_histogram.csv'
         
         if not os.path.exists(pop_hist_path):
             calculate_mean_histogram(dataset_name, 'population')
@@ -434,7 +447,12 @@ def plot_OpEq_all_distributions():
 
 
 def plot_complexity_distribution_over_gens(dataset, bound_max_bin = None):
-    df = pd.read_csv(RESULTS_PATH + '/StdGP/' + dataset + '/iodc_distributions.csv', index_col = 0)
+
+    df = pd.read_csv(RESULTS_PATH + '/StdGP/' + dataset + '/iodc_distributions_run1.csv', index_col = 0)
+
+    for run_nr in range(2, 31):
+        df_run = pd.read_csv(RESULTS_PATH + '/StdGP/' + dataset + f'/iodc_distributions_run{run_nr}.csv', index_col = 0)
+        df = pd.concat([df, df_run], ignore_index = True)
 
     for col in df.columns:
         df[col] = df[col].apply(ast.literal_eval)
@@ -503,8 +521,13 @@ def plot_best_ind_bin_over_generations(dataset):
     # else:
     #     max_bin = bound_max_bin
 
+
+    best_ind_complexity = pd.read_csv(RESULTS_PATH + '/StdGP/' + dataset + '/iodc_complexity_run1.csv', index_col = 0)
+
+    for run_nr in range(2, 31):
+        best_ind_complexity_run = pd.read_csv(RESULTS_PATH + '/StdGP/' + dataset + f'/iodc_complexity_run{run_nr}.csv', index_col = 0)
+        best_ind_complexity = pd.concat([best_ind_complexity, best_ind_complexity_run], ignore_index = True)
     
-    best_ind_complexity = pd.read_csv(RESULTS_PATH + '/StdGP/' + dataset + '/iodc_complexity.csv', index_col = 0)
 
     def get_bin(x):
         return np.ceil(x / BIN_WIDTH)
