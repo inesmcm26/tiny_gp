@@ -181,6 +181,7 @@ def evolve(train_dataset, test_dataset, train_target, test_target, terminals):
                     if parent_fitness < best_of_run_f:
                         best_of_run_f = parent_fitness
                         best_of_run = deepcopy(parent)
+                        best_of_run_gen = gen
 
                 if len(new_pop) < POP_SIZE and check_bin_capacity(target_hist, pop_hist_fitnesses, get_bin(parent2_iodc, bin_width),
                                                                   ind_fitness = parent2_fitness,
@@ -195,6 +196,7 @@ def evolve(train_dataset, test_dataset, train_target, test_target, terminals):
                     if parent2_fitness < best_of_run_f:
                         best_of_run_f = parent2_fitness
                         best_of_run = deepcopy(parent2)
+                        best_of_run_gen = gen
 
 
             # Mutation
@@ -221,6 +223,7 @@ def evolve(train_dataset, test_dataset, train_target, test_target, terminals):
                     if parent_fitness < best_of_run_f:
                         best_of_run_f = parent_fitness
                         best_of_run = deepcopy(parent)
+                        best_of_run_gen = gen
             
             # NOTE: Replication may also occur if no condition is met
             else:
@@ -240,6 +243,7 @@ def evolve(train_dataset, test_dataset, train_target, test_target, terminals):
                     if parent_fitness < best_of_run_f:
                         best_of_run_f = parent_fitness
                         best_of_run = deepcopy(parent)
+                        best_of_run_gen = gen
 
         # Check if true best of run exceeds histogram
         best_complexity = IODC(max_IODC, z, best_of_run, train_dataset)
