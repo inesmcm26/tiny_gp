@@ -136,9 +136,12 @@ def check_bin_capacity(target_hist, pop_fitness_hist, ind_bin, ind_fitness, best
             # print('NOT FULL', len(pop_fitness_hist[ind_bin]), '<', target_hist[ind_bin])
             return True
         # Full bin but best of run -> exceed capacity
-        elif len(pop_fitness_hist[ind_bin]) >= target_hist[ind_bin] and ind_fitness < best_of_run_f:
-            # print('FULL BUT BEST OF RUN', ind_fitness, '<', best_of_run_f)
-            return True
+        elif len(pop_fitness_hist[ind_bin]) >= target_hist[ind_bin]:
+            if len(pop_fitness_hist[ind_bin]) == 0:
+                return True
+            elif ind_fitness < min(pop_fitness_hist[ind_bin]):
+                return True
+             # print('FULL BUT BEST OF RUN', ind_fitness, '<', best_of_run_f)
         
     # New version: out-of-range -> do not accept for now
     elif ind_fitness < best_of_run_f:

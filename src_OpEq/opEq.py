@@ -121,6 +121,9 @@ def check_bin_capacity(target_hist, pop_fitness_hist, ind_bin, ind_fitness, best
     # print()
 
     # print('IND BIN', ind_bin)
+    # print('TARGET CAPACITY', target_hist[ind_bin])
+    # print('NR OF INDS IN BIN', len(pop_fitness_hist[ind_bin]))
+
 
     # If in range
     if ind_bin in pop_fitness_hist.keys():
@@ -128,10 +131,13 @@ def check_bin_capacity(target_hist, pop_fitness_hist, ind_bin, ind_fitness, best
         if len(pop_fitness_hist[ind_bin]) < target_hist[ind_bin]:
             # print('NOT FULL', len(pop_fitness_hist[ind_bin]), '<', target_hist[ind_bin])
             return True
-        # Full bin but best of run -> exceed capacity
-        elif len(pop_fitness_hist[ind_bin]) >= target_hist[ind_bin] and ind_fitness < best_of_run_f:
+        # Full bin but best of bin -> exceed capacity
+        elif len(pop_fitness_hist[ind_bin]) >= target_hist[ind_bin]:
+            if len(pop_fitness_hist[ind_bin]) == 0:
+                return True
+            elif ind_fitness < min(pop_fitness_hist[ind_bin]):
+                return True
             # print('FULL BUT BEST OF RUN', ind_fitness, '<', best_of_run_f)
-            return True
     # Out of range but best of run -> add new bin
     elif ind_fitness < best_of_run_f:
         # print('OUT OF RANGE BUT BEST OF RUN')
@@ -148,7 +154,6 @@ def update_hist(target_hist, pop_hist_fitness, ind_bin, ind_fitness):
 
     # Existing bin
     if ind_bin in pop_hist_fitness.keys():
-        # print('ADD NEW IND to bin', ind_bin)
         pop_hist_fitness[ind_bin].append(ind_fitness)
 
         # print('NEW POP HIST AVAILABILITY')
