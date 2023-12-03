@@ -4,11 +4,14 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
+import plotly.express as px
 import numpy as np
 import ast
 
 RESULTS_PATH = '/home/ines/Documents/tese/tiny_gp/results/'
 OPEQ_RESULTS_PATH = '/home/ines/Documents/tese/tiny_gp/results_OpEq'
+
+BIN_WIDTH = 0.01
 
 
 def plot_learning_curves(dataset_name, gp_method):
@@ -258,12 +261,26 @@ def complexity_overfitting_correlation(dataset_name):
 
     plt.legend() # Show the legend
     plt.show()
+
+
+def plot_size_vs_fitness(dataset):
+    train_fitness = pd.read_csv(OPEQ_RESULTS_PATH + '/' + dataset + '/train.csv', index_col = 0)
+
+    mean_sizes = pd.read_csv(OPEQ_RESULTS_PATH + '/' + dataset + '/mean_ind_size.csv', index_col = 0)
+
+    df = pd.DataFrame()
+    df['Best Train Fitness'] = train_fitness.mean(axis = 0)
+    df['Avg Size'] = mean_sizes.median(axis = 0)
+
+    fig = px.line(df, x="Avg Size", y="Best Train Fitness", title='Best Training Fitness Vs Solution Length')
+    fig.show()
+
     
 def calculate_mean_histogram(dataset, type):
     
     all_columns = []
         
-    datasets = [OPEQ_RESULTS_PATH + '/' + dataset + f'/{type}_histogram_run{i}.csv' for i in range(1, 31)]
+    datasets = [OPEQ_RESULTS_PATH + '/' + dataset + f'/{type}_histogram_run{i}.csv' for i in range(1, 27)]
 
     for ds in datasets:
         df = pd.read_csv(ds, index_col= 0)
@@ -436,14 +453,14 @@ def plot_complexity_distribution_over_gens(dataset, bound_max_bin = None):
     else:
         max_bin = bound_max_bin
 
-    # Create bins with width 0.01
-    custom_bins = np.arange(0, np.ceil(max_bin), 0.01)
+    # Create bins with width BIN_WIDTH
+    custom_bins = np.arange(0, np.ceil(max_bin), BIN_WIDTH)
 
     # Save distribution over generations
     dist = []
 
     for column in concatenated_data.columns:
-        counts, _ = np.histogram(concatenated_data.loc[:, column], bins=custom_bins)
+        counts, _ = np.histogram(concatenated_data.loc[:, column], bins = custom_bins)
 
         dist.append(counts)
 
@@ -464,3 +481,42 @@ def plot_complexity_distribution_over_gens(dataset, bound_max_bin = None):
                     ))
     fig.show()
 
+
+def plot_best_ind_bin_over_generations(dataset):
+    
+    # df = pd.read_csv(RESULTS_PATH + '/StdGP/' + dataset + '/iodc_distributions.csv', index_col = 0)
+
+    # for col in df.columns:
+    #     df[col] = df[col].apply(ast.literal_eval)
+    
+    # # Each column the values of all complexities in that generation over all runs
+    # concatenated_data = df.apply(lambda x: x.sum(), axis=0)
+
+    # if bound_max_bin is None:
+
+    #     # Find the highest ever complexity
+    #     max_bin = 0
+
+    #     for col in concatenated_data.columns:
+    #         if max(concatenated_data[col]) > max_bin:
+    #             max_bin = max(concatenated_data[col])
+    # else:
+    #     max_bin = bound_max_bin
+
+    
+    best_ind_complexity = pd.read_csv(RESULTS_PATH + '/StdGP/' + dataset + '/iodc_complexity.csv', index_col = 0)
+
+    def get_bin(x):
+        return np.ceil(x / BIN_WIDTH)
+    
+    best_bins_df = best_ind_complexity.apply(get_bin)
+
+    fig = px.scatter()
+
+    for row in range(best_bins_df.shape[0]):
+        fig.add_trace(go.Scatter(x=np.arange(best_bins_df.shape[1] + 1), y = best_bins_df.iloc[row, :], mode = 'lines', name = f'Run {row}'))
+
+    fig.update_layout(title='Bin of best individual', xaxis_title='Generations', yaxis_title='Bins',
+                      xaxis=dict(autorange="reversed"), yaxis=dict(autorange="reversed"))
+
+    fig.show()

@@ -10,12 +10,13 @@ from configs_OpEq import *
 def init_target_hist(pop_hist_fitnesses, max_fitness):
     hist = {}
 
-    nr_bins = int((HIST_INITIAL_LIMIT / BIN_WIDTH))
+    nr_bins = max(pop_hist_fitnesses.keys())
+
+    # nr_bins = int((HIST_INITIAL_LIMIT / BIN_WIDTH))
 
     if TARGET == 'FLAT':
 
         bin_capacity = int(POP_SIZE / nr_bins)
-
 
         for i in range(1, nr_bins + 1):
             hist[i] = bin_capacity
@@ -82,7 +83,13 @@ def init_hist(population, train_fitnesses):
     Calculates the list of fitnesses of the individuals belonging to each bin
     """
 
-    nr_bins = int((HIST_INITIAL_LIMIT / BIN_WIDTH))
+    sizes = [ind.size() for ind in population]
+
+    biggest_ind = population[sizes.index(max(sizes))]
+
+    nr_bins = biggest_ind.get_bin()
+
+    # nr_bins = int((HIST_INITIAL_LIMIT / BIN_WIDTH))
 
     pop_hist_fitness = {}
 

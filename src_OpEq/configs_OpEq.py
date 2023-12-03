@@ -1,12 +1,11 @@
-POP_SIZE            = 200   # population size
+POP_SIZE            = 500   # population size
 MIN_DEPTH           = 0    # minimal initial random tree depth
 MAX_INITIAL_DEPTH   = 6    # maximal initial random tree depth
 MAX_DEPTH           = 17
-HIST_INITIAL_LIMIT  = 300 # maximal number of nodes
 TARGET              = 'DYN'
-BIN_WIDTH           = 2
+BIN_WIDTH           = 1
 GENERATIONS         = 50  # maximal number of generations to run evolution
-TOURNAMENT_SIZE     = 3    # size of tournament for tournament selection
+TOURNAMENT_SIZE     = 10    # size of tournament for tournament selection
 XO_RATE             = 0.9  # crossover rate 
 PROB_MUTATION       = 0.1  # per-node mutation probability
 FITNESS             = 'RMSE'

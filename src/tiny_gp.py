@@ -2,7 +2,6 @@ from random import randint, random
 from copy import deepcopy
 import numpy as np
 import time
-from multiprocessing import Pool
 
 from configs import *
 from gptree import GPTree
@@ -244,8 +243,8 @@ def evolve(train_dataset, test_dataset, train_target, test_target, terminals):
         # print('MEAN SLOPE DONE', time.time() - start)
 
         print('NEW BEST FINTESS', best_of_run_f)
-        print('IODC COMPLEXITY', iodc[-1])
-        print('IODC DISTRIBUTION', iodc_distribution[-1])
+        print('BEST IND IODC COMPLEXITY', iodc[-1])
+        # print('IODC DISTRIBUTION', iodc_distribution[-1])
 
         # Optimal solution found
         if best_of_run_f == 0:

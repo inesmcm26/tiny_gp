@@ -1,4 +1,4 @@
-POP_SIZE            = 50   # population size
+POP_SIZE            = 100   # population size
 MIN_DEPTH           = 0    # minimal initial random tree depth
 MAX_INITIAL_DEPTH   = 6    # maximal initial random tree depth
 MAX_DEPTH           = 17

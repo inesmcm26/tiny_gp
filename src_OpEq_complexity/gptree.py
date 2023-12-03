@@ -151,10 +151,16 @@ class GPTree:
         
         # Intermediate depth, grow
         else:
-            if random () > 0.5: 
-                self.node_value = self.terminals[randint(0, len(self.terminals)-1)]
+            rand_idx = randint(0, (len(self.terminals) + len(FUNCTIONS) - 1))
+
+            if rand_idx < len(self.terminals):
+                self.node_value = self.terminals[rand_idx]
             else:
-                self.node_value = FUNCTIONS[randint(0, len(FUNCTIONS)-1)]
+                self.node_value = FUNCTIONS[rand_idx - len(self.terminals)]
+            # if random () > 0.5: 
+            #     self.node_value = self.terminals[randint(0, len(self.terminals)-1)]
+            # else:
+            #     self.node_value = FUNCTIONS[randint(0, len(FUNCTIONS)-1)]
         
         # Generate sub trees
         if self.node_value in FUNCTIONS:

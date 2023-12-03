@@ -10,7 +10,6 @@ class GPTree:
         self.right = right
         self.terminals = terminals
         self.tree_lambda = None
-        self.expression = None
         
     def node_label(self):
         """
@@ -122,7 +121,7 @@ class GPTree:
         self.tree_lambda = eval(f'lambda {", ".join(self.terminals)}: {string_expr}')
 
         self.tree_lambda.expr = string_expr
-        self.expression = self.create_expression()
+        # self.expression = self.create_expression()
 
     def compute_tree(self, obs): 
         """
@@ -167,10 +166,16 @@ class GPTree:
         
         # Intermediate depth, grow
         else:
-            if random () > 0.5: 
-                self.node_value = self.terminals[randint(0, len(self.terminals)-1)]
+            rand_idx = randint(0, (len(self.terminals) + len(FUNCTIONS) - 1))
+
+            if rand_idx < len(self.terminals):
+                self.node_value = self.terminals[rand_idx]
             else:
-                self.node_value = FUNCTIONS[randint(0, len(FUNCTIONS)-1)]
+                self.node_value = FUNCTIONS[rand_idx - len(self.terminals)]
+            # if random () > 0.5: 
+            #     self.node_value = self.terminals[randint(0, len(self.terminals)-1)]
+            # else:
+            #     self.node_value = FUNCTIONS[randint(0, len(FUNCTIONS)-1)]
         
         # Generate sub trees
         if self.node_value in FUNCTIONS:
