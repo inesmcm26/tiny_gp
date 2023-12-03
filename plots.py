@@ -274,7 +274,7 @@ def plot_size_vs_fitness(dataset):
     train_fitness = pd.read_csv(OPEQ_RESULTS_PATH + dataset + f'/train_run1.csv', index_col = 0)
     mean_sizes = pd.read_csv(OPEQ_RESULTS_PATH + dataset + f'/mean_size_run1.csv', index_col = 0)
 
-    for run_nr in range(2, 8):
+    for run_nr in [1, 2, 3, 4, 5, 6, 7, 8, 9, 11]:
         train_fitness_run = pd.read_csv(OPEQ_RESULTS_PATH + dataset +  f'/train_run{run_nr}.csv', index_col = 0)
         train_fitness = pd.concat([train_fitness, train_fitness_run], ignore_index = True)
         
