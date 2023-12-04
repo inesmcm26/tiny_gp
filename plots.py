@@ -294,7 +294,7 @@ def calculate_mean_histogram(dataset, type, results_path = '/home/ines/Documents
     
     all_columns = []
         
-    datasets = [results_path + dataset + f'/{type}_histogram_run{i}.csv' for i in range(1, 31)]
+    datasets = [results_path + dataset + f'/{type}_histogram_run{i}.csv' for i in [6, 7, 8, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25]]
 
     for ds in datasets:
         df = pd.read_csv(ds, index_col= 0)
@@ -446,8 +446,103 @@ def plot_OpEq_all_distributions(results_path ='/home/ines/Documents/tese/tiny_gp
     fig.show()
 
 
+def plot_complexity_distribution_over_gens(dataset, bound_max_bin = 50, bin_width = 0.05, max_bin_viz = 50, results_path = '/home/ines/Documents/tese/tiny_gp/results_initial/'):
+    
+    df = pd.read_csv(results_path + dataset + '/iodc_distribution_run6.csv', index_col = 0)
 
-def plot_complexity_distribution_over_gens(dataset, bound_max_bin = None, bin_width = 0.01, results_path = '/home/ines/Documents/tese/tiny_gp/results_initial/'):
+
+    # ---------------------------------- Checking max bin below the maximum pre-defined ---------------------------------- #
+    # -------------------------------- Also checking how many individuals are left unseen -------------------------------- #
+    for run_nr in [7, 8, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25]:
+        df_run = pd.read_csv(results_path + dataset + f'/iodc_distribution_run{run_nr}.csv', index_col = 0)
+        df = pd.concat([df, df_run], ignore_index = True)
+
+    for col in df.columns:
+        df[col] = df[col].apply(ast.literal_eval)
+
+    # Each column the values of all complexities in that generation over all runs
+    concatenated_data = df.apply(lambda x: x.sum(), axis=0)
+
+    # Find the highest ever complexity
+    max_complexity = 0
+
+    nr_inds_out_bound = 0
+    maximum_ind_complexity = 0
+
+    for col in range(len(concatenated_data.columns)):
+        max_complexity_in_gen = max(concatenated_data.iloc[:, col])
+
+        print('max complexity in gen:', max_complexity_in_gen)
+        if max_complexity_in_gen < bound_max_bin:
+            if max_complexity_in_gen > max_complexity:
+                max_complexity = max_complexity_in_gen
+        else:
+            nr_inds_out = np.sum(concatenated_data.iloc[:, col] > bound_max_bin)
+            nr_inds_out_bound += nr_inds_out
+            print('NR INDS OUT OF BOUNDS', nr_inds_out)
+            if max_complexity_in_gen > maximum_ind_complexity:
+                maximum_ind_complexity = max_complexity_in_gen
+
+    print('MAXIMUM COMPLEXITY EVER:', maximum_ind_complexity)
+    print('ONLY COUNTING UNTIL MAX COMPLEXITY', max_complexity)
+    print('NUMBER INDS OUT BOUND', nr_inds_out_bound)
+
+    # ---------------------------------- Creating bin ranges ------------------------------- #
+    # Create bins with width BIN_WIDTH
+    custom_bins = np.arange(0, np.ceil(max_complexity) + 0.05, bin_width)
+
+    # -------------------- Save dataset mean histogram over generations -------------------- #
+    for run_nr in [6, 7, 8, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25]:
+        df_run = pd.read_csv(results_path + dataset + f'/iodc_distribution_run{run_nr}.csv', index_col = 0)
+    
+        dist = []
+
+        for col in df_run.columns:
+            df_run[col] = df_run[col].apply(ast.literal_eval)
+
+            # Create histogram with pre-defined bins
+            counts, _ = np.histogram(df_run[col][0], bins = custom_bins)
+
+            dist.append(list(counts))
+
+        # Create a dataframe with shape generations x bins and the number of individuals per bin
+        run_distribution = pd.DataFrame(dist, index = [idx for idx in range(1, len(dist) + 1)], columns = [f'bin_{col}' for col in range(1, len(dist[0]) + 1)])
+
+        run_distribution.to_csv(results_path + dataset + f'/population_histogram_run{run_nr}.csv', )
+
+    # Calculate mean bins frequency over the 30 runs
+    calculate_mean_histogram(dataset = dataset, type = 'population', results_path = results_path)
+
+
+    # ---------------------------- Plot the mean histogram over the generations ---------------------------- #
+    mean_histogram_path = results_path + dataset + f'/population_histogram.csv'
+    
+    df = pd.read_csv(mean_histogram_path, index_col = 0)
+
+    # Get the data
+    generations = df.index.values
+    bins = [int(bin.split('_')[-1]) for bin in df.columns.values]       
+    
+    # Limiting the vizualization window
+    if max_bin_viz < bound_max_bin:
+        bins = bins[:max_bin_viz]
+
+    z = df.values.T
+
+    fig = go.Figure(data=[go.Surface(z=z, x=generations, y=bins, coloraxis = "coloraxis")])
+    fig.update_layout(scene=dict(
+                    xaxis=dict(title='Generations'),
+                    yaxis=dict(title='Bins'),
+                    zaxis=dict(title='Population Distribution' if type == 'population' else 'Target Distribution', range=[0, 100]),
+                    ),
+                    title = dataset, autosize=False,
+                    width=800, height=700,
+                    margin=dict(l=40, r=40, b=40, t=60),
+                    coloraxis = {'colorscale':'agsunset'})
+    fig.show()
+
+
+def plot_complexity_distribution_over_gens_old(dataset, bound_max_bin = None, bin_width = 0.01, results_path = '/home/ines/Documents/tese/tiny_gp/results_initial/'):
 
     df = pd.read_csv(results_path + '/StdGP/' + dataset + '/iodc_distribution_run16.csv', index_col = 0)
 
@@ -473,7 +568,7 @@ def plot_complexity_distribution_over_gens(dataset, bound_max_bin = None, bin_wi
         max_complexity = bound_max_bin
 
     # Create bins with width BIN_WIDTH
-    custom_bins = np.arange(0, np.ceil(max_complexity), bin_width)
+    custom_bins = np.arange(0, np.ceil(max_complexity) + 1, bin_width)
 
     # Save distribution over generations
     dist = []
@@ -523,10 +618,10 @@ def plot_best_ind_bin_over_generations(dataset, bin_width = 0.01, results_path =
     #     max_bin = bound_max_bin
 
 
-    best_ind_complexity = pd.read_csv(results_path + '/StdGP/' + dataset + '/iodc_complexity_run1.csv', index_col = 0)
+    best_ind_complexity = pd.read_csv(results_path + dataset + '/iodc_complexity_run6.csv', index_col = 0)
 
-    for run_nr in range(2, 31):
-        best_ind_complexity_run = pd.read_csv(RESULTS_PATH + '/StdGP/' + dataset + f'/iodc_complexity_run{run_nr}.csv', index_col = 0)
+    for run_nr in [7, 8, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25]:
+        best_ind_complexity_run = pd.read_csv(results_path + dataset + f'/iodc_complexity_run{run_nr}.csv', index_col = 0)
         best_ind_complexity = pd.concat([best_ind_complexity, best_ind_complexity_run], ignore_index = True)
     
 
