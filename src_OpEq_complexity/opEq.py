@@ -182,7 +182,7 @@ def update_hist(target_hist, pop_hist_fitness, ind_bin, ind_fitness):
         # print('ADD NEW BINS UNTIL', ind_bin)
         # Add new bins
         for new_bin in range(max(target_hist.keys()) + 1, ind_bin + 1):
-            target_hist[new_bin] = 1
+            target_hist[new_bin] = 0
             pop_hist_fitness[new_bin] = []
 
         pop_hist_fitness[ind_bin].append(ind_fitness)
