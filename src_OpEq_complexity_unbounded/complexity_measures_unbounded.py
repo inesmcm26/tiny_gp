@@ -1,7 +1,6 @@
 from scipy.spatial.distance import pdist
 import numpy as np
 import sympy as sp
-from multiprocessing import Pool
 
 def init_IODC(dataset, target):
     z = pdist(dataset)

@@ -2,12 +2,12 @@ from random import randint, random
 from copy import deepcopy
 import numpy as np
 
-from src_OpEq_complexity_unbounded.configs_OpEq_unbounded import *
+from configs_OpEq_unbounded import *
 from gptree import GPTree
-from src_OpEq_complexity_unbounded.complexity_measures_unbounded import init_IODC, IODC
-from src_OpEq_complexity_unbounded.opEq_unbounded import init_target_hist, init_hist, update_target_hist, reset_pop_hist, check_bin_capacity, update_hist, get_population_len_histogram, get_bin
+from complexity_measures_unbounded import init_IODC, IODC
+from opEq_unbounded import init_target_hist, init_hist, update_target_hist, reset_pop_hist, check_bin_capacity, update_hist, get_population_len_histogram, get_bin
 
-def init_population(terminals, max_IODC, z, train_dataset):
+def init_population(terminals):
     """
     Ramped half-and-half initialization
     """
@@ -23,12 +23,16 @@ def init_population(terminals, max_IODC, z, train_dataset):
             ind = GPTree(terminals = terminals)
             ind.random_tree(grow = True, max_depth = max_depth)
             ind.create_lambda_function() # CREATE LAMBDA FUNCTION HERE!
+
+            pop.append(ind)
         
         # Full
         for _ in range(inds_per_depth):
             ind = GPTree(terminals = terminals)
             ind.random_tree(grow = False, max_depth = max_depth)  
             ind.create_lambda_function() # CREATE LAMBDA FUNCTION HERE!
+
+            pop.append(ind)
 
 
     # Edge case
@@ -39,6 +43,8 @@ def init_population(terminals, max_IODC, z, train_dataset):
         ind = GPTree(terminals = terminals)
         ind.random_tree(grow = grow, max_depth = max_depth)
         ind.create_lambda_function() # CREATE LAMBDA FUNCTION HERE!
+
+        pop.append(ind)
 
     return pop
 
@@ -69,10 +75,12 @@ def tournament(population, fitnesses):
             
 def evolve(train_dataset, test_dataset, train_target, test_target, terminals):
 
+    print('IN')
+
     # Initialize IODC calculation
     z, max_IODC = init_IODC(train_dataset, train_target)
     
-    population = init_population(terminals, max_IODC, z, train_dataset)
+    population = init_population(terminals)
 
     # Calculate initial train fitnesses
     train_fitnesses = [fitness(ind, train_dataset, train_target) for ind in population]
@@ -255,13 +263,6 @@ def evolve(train_dataset, test_dataset, train_target, test_target, terminals):
         best_ind_list.append(best_of_run.create_expression())
         # Save test performance
         new_val_fitness = fitness(best_of_run, test_dataset, test_target)
-
-        if new_val_fitness < best_val_fitness:
-            best_val_fitness = new_val_fitness
-            print('NEW BEST VAL FITNESS', best_val_fitness)
-            nr_gen_no_improvement = 0
-        else:
-            nr_gen_no_improvement += 1
         
         best_test_fit_list.append(new_val_fitness)
         # Save complexity
@@ -279,4 +280,3 @@ def evolve(train_dataset, test_dataset, train_target, test_target, terminals):
     # best_of_run.print_tree()
 
     return best_train_fit_list, best_test_fit_list, best_ind_list, best_of_run_gen, iodc, target_histogram, population_histogram
-    

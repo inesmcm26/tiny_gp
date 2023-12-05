@@ -1,7 +1,7 @@
 import numpy as np
 
-from src_OpEq_complexity_unbounded.configs_OpEq_unbounded import *
-from src_OpEq_complexity_unbounded.complexity_measures_unbounded import IODC
+from configs_OpEq_unbounded import *
+from complexity_measures_unbounded import IODC
 
 
 def get_bin(complexity, bin_width):
@@ -95,7 +95,11 @@ def init_hist(population, train_fitnesses, max_IODC, z, dataset):
     # Complexities range from 0 to infinity
     max_comp = max(inds_complexities)
 
-    nr_bins = np.ceil(max_comp / BIN_WIDTH)
+    print('MAX COMPLEXITY', max_comp)
+
+    nr_bins = int(np.ceil(max_comp / BIN_WIDTH))
+
+    print('NR BINS', nr_bins)
 
     # For each individual, calculate its complexity
     for idx in range(len(population)):
@@ -106,12 +110,6 @@ def init_hist(population, train_fitnesses, max_IODC, z, dataset):
             pop_hist_fitness[ind_bin].append(train_fitnesses[idx])
         else:
             pop_hist_fitness[ind_bin] = [train_fitnesses[idx]]
-
-    if max(pop_hist_fitness.keys()) != nr_bins:
-        print('KEYS', pop_hist_fitness.keys())
-        print('NR BINS', nr_bins)
-        print('MAX COMPLEXITY', max_comp)
-        raise Exception('MAX KEY != NR BINS')
 
     # For bins with no individuals, initialize an empty list
     for i in range(1, nr_bins + 1):

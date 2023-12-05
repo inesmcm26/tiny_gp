@@ -1,6 +1,6 @@
 from random import random, randint, choice
 
-from src_OpEq_complexity_unbounded.configs_OpEq_unbounded import *
+from configs_OpEq_unbounded import *
 from ops import FUNCTIONS, MAPPING, add, sub, mul, div
 import numpy as np
 

@@ -5,7 +5,7 @@ import numpy as np
 
 from data import read_dataset
 from tiny_gp import evolve
-from src_OpEq_complexity_unbounded.configs_OpEq_unbounded import GENERATIONS
+from configs_OpEq_unbounded import GENERATIONS
 
 #####################################################
 #                     StdGP Run                     #
@@ -14,7 +14,7 @@ from src_OpEq_complexity_unbounded.configs_OpEq_unbounded import GENERATIONS
 
 def run_stdGP(ds_name):
 
-    SAVE_PATH = f'/home/ines/Documents/tese/tiny_gp/results_OpEq_complexity/{ds_name}/'
+    SAVE_PATH = f'/home/ines/Documents/tese/tiny_gp/results_OpEq_complexity_unbounded/{ds_name}/'
 
     # Check if the directory exists
     if not os.path.exists(SAVE_PATH):
@@ -22,7 +22,7 @@ def run_stdGP(ds_name):
         os.makedirs(SAVE_PATH)
     
     # Run for 30 times with each dataset partition
-    for run_nr in tqdm(range(1, 31)):
+    for run_nr in tqdm(range(4, 5)):
         
         # Get correct data partition
         train_dataset, test_dataset, train_target, test_target = read_dataset(ds_name, run_nr)
@@ -72,4 +72,5 @@ def run_StdGP_all_ds():
 
 # run_stdGP('Concrete')
 
-run_StdGP_all_ds()
+# run_StdGP_all_ds()
+run_stdGP('Bioavailability')
