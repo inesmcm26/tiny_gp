@@ -223,14 +223,12 @@ def evolve(train_dataset, test_dataset, train_target, test_target, terminals):
         mean_test_fit_list.append(np.mean(test_fitnesses))
 
         # Save complexities
-        start = time.time()
         iodc.append(IODC(max_IODC, z, best_of_run, train_dataset))
         # p_analysis.append(polynomial_analysis(best_of_run))
         # slope.append(slope_based_complexity(max_slope_complexity, best_of_run, train_dataset))
         # print('BEST COMPLEXITIES DONE', time.time() - start)
 
         # Save mean complexities
-        start = time.time()
         iodc_distribution.append([IODC(max_IODC, z, ind, train_dataset) for ind in population])
         mean_iodc.append(np.mean(iodc_distribution[-1]))
 
@@ -243,6 +241,7 @@ def evolve(train_dataset, test_dataset, train_target, test_target, terminals):
         # print('MEAN SLOPE DONE', time.time() - start)
 
         print('NEW BEST FINTESS', best_of_run_f)
+        print('FITNESS IN TEST', best_test_fit_list[-1])
         print('BEST IND IODC COMPLEXITY', iodc[-1])
         # print('IODC DISTRIBUTION', iodc_distribution[-1])
 

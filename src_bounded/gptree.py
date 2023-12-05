@@ -1,6 +1,6 @@
 from random import random, randint, choice
 
-from configs import *
+from configs_bounded import *
 from ops import FUNCTIONS, MAPPING, add, sub, mul, div
 
 class GPTree:

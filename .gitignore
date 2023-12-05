@@ -1,1 +1,10 @@
 __pycache__
+results_OpEq/
+results_OpEq_complexity/
+results_OpEq_complexity_flat/
+results_OpEq_complexity_unbounded/
+results_OpEq_old/
+results_OpEq_old_mean/
+results_initial/
+run_notebook.ipynb
+

@@ -4,7 +4,7 @@ from tqdm import tqdm
 
 from data import read_dataset
 from tiny_gp_bounded import evolve
-from configs import GENERATIONS
+from configs_bounded import GENERATIONS
 
 #####################################################
 #                     StdGP Run                     #
@@ -21,7 +21,7 @@ def run_stdGP(ds_name):
         os.makedirs(SAVE_PATH)
     
     # Run for 30 times with each dataset partition
-    for run_nr in tqdm(range(24, 26)): # TODO: CHANGE HERE!
+    for run_nr in tqdm(range(1, 2)): # TODO: CHANGE HERE!
         
         # Get correct data partition
         train_dataset, test_dataset, train_target, test_target = read_dataset(ds_name, run_nr)

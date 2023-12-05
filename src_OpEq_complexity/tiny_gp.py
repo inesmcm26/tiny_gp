@@ -364,8 +364,10 @@ def evolve(train_dataset, test_dataset, train_target, test_target, terminals):
             nr_gen_no_improvement += 1
         
         best_test_fit_list.append(new_val_fitness)
+        print('FITNESS IN TEST', best_test_fit_list[-1])
         # Save complexity
         iodc.append(IODC(max_IODC, z, best_of_run, train_dataset))
+        print('BEST IND IODC COMPLEXITY', iodc[-1])
         # Save distributions
         target_histogram.append([target_hist[key] for key in sorted(target_hist.keys())])
         #population_histogram.append([pop_hist_fitnesses[key] for key in sorted(pop_hist_fitnesses.keys())])
