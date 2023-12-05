@@ -50,8 +50,6 @@ def init_population(terminals, max_IODC, z, train_dataset):
         if IODC(max_IODC, z, ind, train_dataset) < MAX_COMPLEXITY:
             pop.append(ind) 
         
-        pop.append(ind) 
-
     return pop
 
 def fitness(individual, dataset, target):
