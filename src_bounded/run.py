@@ -21,7 +21,7 @@ def run_stdGP(ds_name):
         os.makedirs(SAVE_PATH)
     
     # Run for 30 times with each dataset partition
-    for run_nr in tqdm(range(1, 2)): # TODO: CHANGE HERE!
+    for run_nr in tqdm(range(16, 21)): # TODO: CHANGE HERE!
         
         # Get correct data partition
         train_dataset, test_dataset, train_target, test_target = read_dataset(ds_name, run_nr)
@@ -65,6 +65,6 @@ def run_StdGP_all_ds():
         run_stdGP(dataset)
 
 
-# run_stdGP('Concrete')
+run_stdGP('Concrete')
 
-run_StdGP_all_ds()
+# run_StdGP_all_ds()
