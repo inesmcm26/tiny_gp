@@ -141,8 +141,9 @@ class GPTree:
         Create random tree using either grow or full method.
         This tree will be rooted on the current tree root node.
         """
+
         # Get a random function
-        if depth < MIN_DEPTH or (depth < max_depth and not grow): 
+        if depth < (MIN_DEPTH - 1) or (depth < max_depth and not grow): 
             self.node_value = FUNCTIONS[randint(0, len(FUNCTIONS)-1)]
 
         # Get a random terminal
@@ -152,6 +153,7 @@ class GPTree:
         # Intermediate depth, grow
         else:
             rand_idx = randint(0, (len(self.terminals) + len(FUNCTIONS) - 1))
+
 
             if rand_idx < len(self.terminals):
                 self.node_value = self.terminals[rand_idx]
@@ -176,12 +178,8 @@ class GPTree:
 
         random_node_idx = randint(1, self.size())
 
-        node_depth = self.node_depth(random_node_idx)[1]
-
-        max_depth = MAX_DEPTH - node_depth
-
         new_subtree = GPTree(terminals = self.terminals)
-        new_subtree.random_tree(grow = True, max_depth = max_depth)  
+        new_subtree.random_tree(grow = True, max_depth = MAX_INITIAL_DEPTH)  
 
         self.scan_tree([random_node_idx], new_subtree)
 
@@ -249,25 +247,11 @@ class GPTree:
 
         random_node_idx_second = randint(1, other.size())
 
-        random_node_depth = other.node_depth(random_node_idx_second)[1]
-
         second_subtree = other.scan_tree([random_node_idx_second], None)
-
-        second_subtree_depth = second_subtree.depth()
-
-        nodes_above_depth = self.get_nodes_idx_above_depth(MAX_DEPTH - (second_subtree_depth + 1) + 2, nodes_list=[])
-
-        search_nodes_idx = []
-
-        for node_idx in nodes_above_depth[1]:
-            subtree = self.scan_tree([node_idx], None)
-
-            if MAX_DEPTH - (random_node_depth - 1) - 1 >= subtree.depth():
-                search_nodes_idx.append(node_idx)
-
         
         # Scan first tree to get the subtree
-        random_node_idx_first = choice(search_nodes_idx)
+        random_node_idx_first = randint(1, self.size())
+        
         first_subtree = self.scan_tree([random_node_idx_first], None)
 
         self.scan_tree([random_node_idx_first], second_subtree)

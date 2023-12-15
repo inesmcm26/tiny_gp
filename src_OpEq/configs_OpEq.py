@@ -1,5 +1,5 @@
 POP_SIZE            = 500   # population size
-MIN_DEPTH           = 0    # minimal initial random tree depth
+MIN_DEPTH           = 1    # minimal initial random tree depth
 MAX_INITIAL_DEPTH   = 6    # maximal initial random tree depth
 MAX_DEPTH           = 17
 TARGET              = 'DYN'

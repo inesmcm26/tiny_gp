@@ -23,22 +23,19 @@ def init_target_hist(pop_hist_fitnesses, max_fitness):
     
     elif TARGET == 'DYN':
 
-        # Fitnesses are normalized for a minimization problem
-        all_fitnesses = {bin: np.mean(max_fitness - np.array(pop_hist_fitnesses[bin])) if len(pop_hist_fitnesses[bin]) > 0 else 0 for bin in pop_hist_fitnesses.keys()}
-        
-        for bin in range(1, nr_bins + 1):
-            hist[bin] = int(np.round(POP_SIZE *  (all_fitnesses[bin] / sum(all_fitnesses.values()))))
+        mean_fitnesses = {bin: - np.mean(pop_hist_fitnesses[bin]) if len(pop_hist_fitnesses[bin]) > 0 else 0 for bin in pop_hist_fitnesses.keys()}
 
-        # TODO: CONFIRM THIS!
-        while sum(hist.values()) > POP_SIZE:
-            print('TARGET > POP SIZE')
-            best_bin = max(hist, key = hist.get)
-            hist[best_bin] -= 1
+        all_means_diff_zero = [mean_fit for mean_fit in mean_fitnesses.values() if mean_fit != 0]
+        # Fitnesses are normalized for a minimization problem
+        # all_fitnesses = {bin: np.mean(max_fitness - np.array(pop_hist_fitnesses[bin])) if len(pop_hist_fitnesses[bin]) > 0 else 0 for bin in pop_hist_fitnesses.keys()}
+
+        if min(mean_fitnesses.values()) < 0:
+            for bin in mean_fitnesses:
+                if mean_fitnesses[bin] != 0:
+                    mean_fitnesses[bin] += (abs(max(all_means_diff_zero)) + abs(min(all_means_diff_zero)))
         
-        while sum(hist.values()) < POP_SIZE:
-            print('TARGET < POP SIZE')
-            best_bin = max(hist, key = hist.get)
-            hist[best_bin] += 1
+        for bin in mean_fitnesses.keys():
+            hist[bin] = int(POP_SIZE * (mean_fitnesses[bin] / sum(mean_fitnesses.values())))
     
     return hist
 
@@ -46,23 +43,19 @@ def update_target_hist(pop_hist_fitnesses, max_fitness):
 
     hist = {}
 
-    # Fitnesses are normalized for a minimization problem   
-    all_fitnesses = {bin: np.mean(max_fitness - np.array(pop_hist_fitnesses[bin])) if len(pop_hist_fitnesses[bin]) > 0 else 0 for bin in pop_hist_fitnesses.keys()}
-    
-    for bin in pop_hist_fitnesses.keys():
-        hist[bin] = int(np.round(POP_SIZE *  (all_fitnesses[bin] / sum(all_fitnesses.values()))))
-    
-    # TODO: CONFIRM THIS!
-    while sum(hist.values()) > POP_SIZE:
-        best_bin = max(hist, key = hist.get)
-        hist[best_bin] -= 1
-    
-    while sum(hist.values()) < POP_SIZE:
-        best_bin = max(hist, key = hist.get)
-        hist[best_bin] += 1
+    mean_fitnesses = {bin: - np.mean(pop_hist_fitnesses[bin]) if len(pop_hist_fitnesses[bin]) > 0 else 0 for bin in pop_hist_fitnesses.keys()}
 
-    if sum(hist.values()) > POP_SIZE or sum(hist.values()) < POP_SIZE:
-        raise Exception('TARGETS != POP SIZE. SUM =', sum(hist.values()))
+    all_means_diff_zero = [mean_fit for mean_fit in mean_fitnesses.values() if mean_fit != 0]
+    # Fitnesses are normalized for a minimization problem
+    # all_fitnesses = {bin: np.mean(max_fitness - np.array(pop_hist_fitnesses[bin])) if len(pop_hist_fitnesses[bin]) > 0 else 0 for bin in pop_hist_fitnesses.keys()}
+        
+    if min(mean_fitnesses.values()) < 0:
+        for bin in mean_fitnesses:
+            if mean_fitnesses[bin] != 0:
+                mean_fitnesses[bin] += (abs(max(all_means_diff_zero)) + abs(min(all_means_diff_zero)))
+    
+    for bin in mean_fitnesses.keys():
+        hist[bin] = int(POP_SIZE * (mean_fitnesses[bin] / sum(mean_fitnesses.values())))
 
     return hist
 
@@ -140,6 +133,9 @@ def check_bin_capacity(target_hist, pop_fitness_hist, ind_bin, ind_fitness, best
             # print('FULL BUT BEST OF RUN', ind_fitness, '<', best_of_run_f)
     # Out of range but best of run -> add new bin
     elif ind_fitness < best_of_run_f:
+        print('BEST OF RUN FITNESS:', best_of_run_f)
+        print('NEW INDIVIDUAL FITNESS:', ind_fitness)
+        print('NEW IND BIN:', ind_bin)
         # print('OUT OF RANGE BUT BEST OF RUN')
         # print(ind_fitness, '<', best_of_run_f)
         return True
@@ -187,3 +183,14 @@ def get_population_len_histogram(population_fitness_histogram):
         pop_len_hist.append(len(population_fitness_histogram[ind_bin]))
     
     return pop_len_hist
+
+def get_best_ind_in_bins(population_fitness_histogram):
+    best_fits = {}
+
+    for ind_bin in sorted(population_fitness_histogram.keys()):
+        if len(population_fitness_histogram[ind_bin]) > 0:
+            best_fits[ind_bin] = min(population_fitness_histogram[ind_bin])
+        else:
+            best_fits[ind_bin] = None
+
+    return best_fits

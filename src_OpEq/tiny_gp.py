@@ -1,11 +1,11 @@
-from random import randint, random
+from random import randint, random, choice
 from copy import deepcopy
 import numpy as np
 import time
 
 from configs_OpEq import *
 from gptree import GPTree
-from opEq import init_target_hist, init_hist, update_target_hist, reset_pop_hist, check_bin_capacity, update_hist, get_population_len_histogram
+from opEq import init_target_hist, init_hist, update_target_hist, reset_pop_hist, check_bin_capacity, update_hist, get_population_len_histogram, get_best_ind_in_bins
                    
 def init_population(terminals):
     """
@@ -13,37 +13,57 @@ def init_population(terminals):
     """
 
     # Number of individuals of each depth and initialized with each method
-    inds_per_depth = int((POP_SIZE / (MAX_INITIAL_DEPTH + 1)) / 2)
+    inds_per_depth = int((POP_SIZE / (MAX_INITIAL_DEPTH - 1)) / 2)
+
+    print(inds_per_depth)
 
     pop = []
-    for max_depth in range(MIN_DEPTH, MAX_INITIAL_DEPTH + 1):
-        
+    pop_str = []
+
+    for max_depth in range(MIN_DEPTH, MAX_INITIAL_DEPTH):
+
         # Grow
         for _ in range(inds_per_depth):
-            ind = GPTree(terminals = terminals)
-            ind.random_tree(grow = True, max_depth = max_depth)
-            ind.create_lambda_function() # CREATE LAMBDA FUNCTION HERE!
+
+            for _ in range(20): 
+                ind = GPTree(terminals = terminals)
+                ind.random_tree(grow = True, max_depth = max_depth)
+                ind.create_lambda_function() # CREATE LAMBDA FUNCTION HERE!
+
+                if ind.tree2_string() not in pop_str:
+                    break
 
             pop.append(ind) 
+            pop_str.append(ind.tree2_string())
         
         # Full
         for _ in range(inds_per_depth):
-            ind = GPTree(terminals = terminals)
-            ind.random_tree(grow = False, max_depth = max_depth)  
-            ind.create_lambda_function() # CREATE LAMBDA FUNCTION HERE!
 
-            pop.append(ind) 
+            for _ in range(20):
+                ind = GPTree(terminals = terminals)
+                ind.random_tree(grow = False, max_depth = max_depth)  
+                ind.create_lambda_function() # CREATE LAMBDA FUNCTION HERE!
 
+                if ind.tree2_string() not in pop_str:
+                    break
+
+
+            pop.append(ind)
+            pop_str.append(ind.tree2_string())
 
     # Edge case
     while len(pop) != POP_SIZE:
-        # Generate random tree with random method to fill population
-        max_depth = randint(MIN_DEPTH, MAX_INITIAL_DEPTH)
-        grow = True if random() < 0.5 else False
-        ind = GPTree(terminals = terminals)
-        ind.random_tree(grow = grow, max_depth = max_depth)
-        ind.create_lambda_function() # CREATE LAMBDA FUNCTION HERE!
-        pop.append(ind) 
+        for _ in range(20):
+            # Generate random tree with grow method at higher level to fill population
+            ind = GPTree(terminals = terminals)
+            ind.random_tree(grow = 1, max_depth = MAX_INITIAL_DEPTH)
+            ind.create_lambda_function() # CREATE LAMBDA FUNCTION HERE!
+
+            if ind.tree2_string() not in pop_str:
+                break
+
+        pop.append(ind)
+        pop_str.append(ind.tree2_string())
 
     return pop
 
@@ -71,6 +91,37 @@ def tournament(population, fitnesses):
     
     # Return the winner
     return deepcopy(population[tournament[tournament_fitnesses.index(min(tournament_fitnesses))]]) 
+
+def lexitournament(population, fitnesses):
+    """
+    Lexigographic Parsimony Tournament
+    """
+
+    # Select random individuals to compete
+    tournament = [randint(0, len(population)-1) for _ in range(TOURNAMENT_SIZE)] # indexes of individuals
+
+    # Get their fitness values
+    tournament_fitnesses = [fitnesses[tournament[i]] for i in range(TOURNAMENT_SIZE)] # fitnesses of individuals
+
+    min_indices = [index for index, value in enumerate(tournament_fitnesses) if value == min(tournament_fitnesses)]
+
+    if len(min_indices) == 1:
+        return deepcopy(population[tournament[tournament_fitnesses.index(min(tournament_fitnesses))]]) 
+    else:
+        print('TIE IN TOURNAMENT!!')
+        min_size = 9999999
+        smallest_ind = None
+        for idx in min_indices:
+            ind = population[tournament[idx]]
+            print('IND SIZE:', ind.size())
+            if ind.size() < min_size:
+                min_size = ind.size()
+                smallest_ind = ind
+
+        print('WINNER SIZE:', smallest_ind.size())
+        return deepcopy(smallest_ind)
+
+
             
 def evolve(train_dataset, test_dataset, train_target, test_target, terminals):
 
@@ -82,8 +133,11 @@ def evolve(train_dataset, test_dataset, train_target, test_target, terminals):
 
     target_hist = init_target_hist(pop_hist_fitnesses, max(train_fitnesses))
 
-    for ind in population:
-        print('SIZE', ind.size())
+    # for ind in population:
+    #     print('IND:')
+    #     ind.print_tree()
+    #     print('DEPTH', ind.depth())
+    #     print('SIZE', ind.size())
 
     print('INITIAL POP FITNESS HIST')
     for key, value in pop_hist_fitnesses.items():
@@ -134,15 +188,30 @@ def evolve(train_dataset, test_dataset, train_target, test_target, terminals):
                 # print('CROSSOVER')
                 parent2 = tournament(population, train_fitnesses)
 
+                parent_orig = deepcopy(parent)
+                parent2_orig = deepcopy(parent)
+
                 parent.crossover(parent2)
+
+                # if parent.depth() > MAX_DEPTH or parent2.depth() > MAX_DEPTH:
+                #     print('Crossover generated an individual that exceeds depth.')
+                #     print('Child 1 depth:', parent.depth())
+                #     print('Child 2 depth:', parent2.depth())
+
+                # If children exceed parents
+                if parent.depth() > MAX_DEPTH:
+                    parent = choice([parent_orig, parent2_orig])
+                
+                if parent2.depth() > MAX_DEPTH:
+                    parent2 = choice([parent_orig, parent2_orig])
 
                 parent_fitness = fitness(parent, train_dataset, train_target)
                 parent2_fitness = fitness(parent2, train_dataset, train_target)
 
-
                 if parent.depth() > MAX_DEPTH or parent2.depth() > MAX_DEPTH:
                     raise Exception('Crossover generated an individual that exceeds depth.')
                 
+                # First child
                 if check_bin_capacity(target_hist, pop_hist_fitnesses, ind_bin = parent.get_bin(),
                                       ind_fitness = parent_fitness,
                                       best_of_run_f = best_of_run_f):
@@ -158,7 +227,8 @@ def evolve(train_dataset, test_dataset, train_target, test_target, terminals):
                         best_of_run = deepcopy(parent)
                         best_of_run_gen = gen
                 
-                if len(new_pop) < POP_SIZE and check_bin_capacity(target_hist, pop_hist_fitnesses, ind_bin = parent2.get_bin(),
+                # Second child
+                if check_bin_capacity(target_hist, pop_hist_fitnesses, ind_bin = parent2.get_bin(),
                                                                   ind_fitness = parent2_fitness,
                                                                   best_of_run_f = best_of_run_f):
                     
@@ -212,7 +282,18 @@ def evolve(train_dataset, test_dataset, train_target, test_target, terminals):
                         best_of_run_f = parent_fitness
                         best_of_run = deepcopy(parent)
                         best_of_run_gen = gen
-                        
+        
+        # Check if len population exceeded
+        if len(new_pop) > POP_SIZE:
+            print('POP SIZE EXCEEDED')
+            # Remove worst individual
+            idx_worst = new_train_fitnesses.index(max(new_train_fitnesses))
+            new_pop.pop(idx_worst)
+            new_train_fitnesses.pop(idx_worst)
+        
+        if len(new_pop) != POP_SIZE:
+            raise Exception('POP SIZE EXCEEDED!!!')
+
         population = new_pop
         train_fitnesses = new_train_fitnesses
 
@@ -248,6 +329,10 @@ def evolve(train_dataset, test_dataset, train_target, test_target, terminals):
         target_histogram.append([target_hist[key] for key in sorted(target_hist.keys())])
         #population_histogram.append([pop_hist_fitnesses[key] for key in sorted(pop_hist_fitnesses.keys())])
         population_histogram.append(get_population_len_histogram(pop_hist_fitnesses))
+
+        # print(get_best_ind_in_bins(pop_hist_fitnesses))
+
+        print('BIN OF BEST INDIVIDUAL', best_of_run.get_bin())
 
         # Optimal solution found
         if best_of_run_f == 0:

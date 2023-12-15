@@ -1,5 +1,6 @@
 __pycache__
 results/
+results_bounded/
 results_OpEq/
 results_OpEq_complexity/
 results_OpEq_complexity_flat/
