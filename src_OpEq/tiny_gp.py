@@ -161,6 +161,7 @@ def evolve(train_dataset, test_dataset, train_target, test_target, terminals):
     best_size = [best_of_run.size()]
     # Save mean size
     mean_size = [np.mean([ind.size() for ind in population])]
+    median_size = [np.median([ind.size() for ind in population])]
     # Save distributions
     target_histogram = [[target_hist[key] for key in sorted(target_hist.keys())]]
     #population_histogram = [[pop_hist_fitnesses[key] for key in sorted(pop_hist_fitnesses.keys())]]
@@ -331,6 +332,7 @@ def evolve(train_dataset, test_dataset, train_target, test_target, terminals):
         best_size.append(best_of_run.size())
         # Save mean size
         mean_size.append(np.mean([ind.size() for ind in population]))
+        median_size.append(np.median([ind.size() for ind in population]))
         # Save distributions
         target_histogram.append([target_hist[key] for key in sorted(target_hist.keys())])
         #population_histogram.append([pop_hist_fitnesses[key] for key in sorted(pop_hist_fitnesses.keys())])
@@ -347,5 +349,5 @@ def evolve(train_dataset, test_dataset, train_target, test_target, terminals):
     print("\n\n_________________________________________________\nEND OF RUN\nbest_of_run has f=" + str(round(best_of_run_f, 3)))
     # best_of_run.print_tree()
 
-    return best_train_fit_list, best_test_fit_list, best_ind_list, best_of_run_gen, best_size, mean_size, target_histogram, population_histogram
+    return best_train_fit_list, best_test_fit_list, best_ind_list, best_of_run_gen, best_size, mean_size, median_size, target_histogram, population_histogram
     

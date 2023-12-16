@@ -31,7 +31,7 @@ def run_stdGP(ds_name):
 
         # Run GP
         best_train_fit_list, best_test_fit_list, best_ind_list, best_of_run_gen, \
-            best_size_list, mean_size_list, target_histogram_list, population_histogram_list = \
+            best_size_list, mean_size_list, median_size_list, target_histogram_list, population_histogram_list = \
             evolve(train_dataset, test_dataset, train_target, test_target, terminals)
 
         # Find the maximum length of the inner lists
@@ -50,6 +50,7 @@ def run_stdGP(ds_name):
         best_gen = pd.DataFrame([best_of_run_gen], columns = ['Gen_Number'])
         best_size = pd.DataFrame([best_size_list], columns = [i for i in range(0, GENERATIONS + 1)])
         mean_size = pd.DataFrame([mean_size_list], columns = [i for i in range(0, GENERATIONS + 1)])
+        median_size = pd.DataFrame([median_size_list], columns = [i for i in range(0, GENERATIONS + 1)])
         target_histogram = pd.DataFrame(padded_target_list, columns = [f'bin_{i}' for i in range(1, len(padded_target_list[0]) + 1)])
         population_histogram = pd.DataFrame(padded_population_list, columns = [f'bin_{i}' for i in range(1, len(padded_population_list[0]) + 1)])
 
@@ -59,6 +60,7 @@ def run_stdGP(ds_name):
         best_gen.to_csv(SAVE_PATH + f'best_gen_run{run_nr}.csv')
         best_size.to_csv(SAVE_PATH + f'best_size_run{run_nr}.csv')
         mean_size.to_csv(SAVE_PATH + f'mean_size_run{run_nr}.csv')
+        median_size.to_csv(SAVE_PATH + f'median_size_run{run_nr}.csv')
         target_histogram.to_csv(SAVE_PATH + f'target_histogram_run{run_nr}.csv')
         population_histogram.to_csv(SAVE_PATH + f'population_histogram_run{run_nr}.csv')
    
