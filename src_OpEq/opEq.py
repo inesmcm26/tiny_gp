@@ -43,19 +43,30 @@ def update_target_hist(pop_hist_fitnesses, max_fitness):
 
     hist = {}
 
-    mean_fitnesses = {bin: - np.mean(pop_hist_fitnesses[bin]) if len(pop_hist_fitnesses[bin]) > 0 else 0 for bin in pop_hist_fitnesses.keys()}
-
-    all_means_diff_zero = [mean_fit for mean_fit in mean_fitnesses.values() if mean_fit != 0]
-    # Fitnesses are normalized for a minimization problem
-    # all_fitnesses = {bin: np.mean(max_fitness - np.array(pop_hist_fitnesses[bin])) if len(pop_hist_fitnesses[bin]) > 0 else 0 for bin in pop_hist_fitnesses.keys()}
-        
-    if min(mean_fitnesses.values()) < 0:
-        for bin in mean_fitnesses:
-            if mean_fitnesses[bin] != 0:
-                mean_fitnesses[bin] += (abs(max(all_means_diff_zero)) + abs(min(all_means_diff_zero)))
+    if TARGET == 'FLAT':
     
-    for bin in mean_fitnesses.keys():
-        hist[bin] = int(POP_SIZE * (mean_fitnesses[bin] / sum(mean_fitnesses.values())))
+        nr_bins = max(pop_hist_fitnesses.keys())
+    
+        bin_capacity = int(POP_SIZE / nr_bins)
+
+        for i in range(1, nr_bins + 1):
+            hist[i] = bin_capacity
+    
+    elif TARGET == 'DYN':
+
+        mean_fitnesses = {bin: - np.mean(pop_hist_fitnesses[bin]) if len(pop_hist_fitnesses[bin]) > 0 else 0 for bin in pop_hist_fitnesses.keys()}
+
+        all_means_diff_zero = [mean_fit for mean_fit in mean_fitnesses.values() if mean_fit != 0]
+        # Fitnesses are normalized for a minimization problem
+        # all_fitnesses = {bin: np.mean(max_fitness - np.array(pop_hist_fitnesses[bin])) if len(pop_hist_fitnesses[bin]) > 0 else 0 for bin in pop_hist_fitnesses.keys()}
+            
+        if min(mean_fitnesses.values()) < 0:
+            for bin in mean_fitnesses:
+                if mean_fitnesses[bin] != 0:
+                    mean_fitnesses[bin] += (abs(max(all_means_diff_zero)) + abs(min(all_means_diff_zero)))
+        
+        for bin in mean_fitnesses.keys():
+            hist[bin] = int(POP_SIZE * (mean_fitnesses[bin] / sum(mean_fitnesses.values())))
 
     return hist
 

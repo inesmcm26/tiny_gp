@@ -307,8 +307,7 @@ def evolve(train_dataset, test_dataset, train_target, test_target, terminals):
         # print('NEW POP FITNESS HIST')
         # print(pop_hist_fitnesses)
 
-        if TARGET != 'FLAT':
-            target_hist = update_target_hist(pop_hist_fitnesses, max(train_fitnesses))
+        target_hist = update_target_hist(pop_hist_fitnesses, max(train_fitnesses))
 
         print('POP HIST')
         for key, value in pop_hist_fitnesses.items():
