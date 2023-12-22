@@ -1,5 +1,6 @@
 __pycache__
 results/
+results_iodc_only/
 results_bounded/
 results_OpEq/
 results_OpEq_after_changes/
@@ -12,4 +13,3 @@ results_OpEq_old_mean/
 results_initial/
 run_notebook.ipynb
 notebooks/
-
