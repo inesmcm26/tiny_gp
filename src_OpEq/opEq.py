@@ -89,6 +89,8 @@ def init_hist(population, train_fitnesses):
 
     sizes = [ind.size() for ind in population]
 
+    print('SIZES:', sizes)
+
     biggest_ind = population[sizes.index(max(sizes))]
 
     nr_bins = biggest_ind.get_bin()
@@ -137,20 +139,28 @@ def check_bin_capacity(target_hist, pop_fitness_hist, ind_bin, ind_fitness, best
             return True
         # Full bin but best of bin -> exceed capacity
         elif len(pop_fitness_hist[ind_bin]) >= target_hist[ind_bin]:
+            # print('BINS BEST FITNESS', min(pop_fitness_hist[ind_bin]) if len(pop_fitness_hist[ind_bin]) != 0 else 0)
             if len(pop_fitness_hist[ind_bin]) == 0:
                 return True
             elif ind_fitness < min(pop_fitness_hist[ind_bin]):
                 return True
+        
+        # print('IND FITNESS:', ind_fitness)
+        # print('IND BIN:', ind_bin)
+        # print('BIN OCUPANCY:', len(pop_fitness_hist[ind_bin]))
+        # print('BIN CAPACITY:', target_hist[ind_bin])
             # print('FULL BUT BEST OF RUN', ind_fitness, '<', best_of_run_f)
     # Out of range but best of run -> add new bin
     elif ind_fitness < best_of_run_f:
-        print('BEST OF RUN FITNESS:', best_of_run_f)
-        print('NEW INDIVIDUAL FITNESS:', ind_fitness)
-        print('NEW IND BIN:', ind_bin)
+        # print('BEST OF RUN FITNESS:', best_of_run_f)
+        # print('NEW INDIVIDUAL FITNESS:', ind_fitness)
+        # print('NEW IND BIN:', ind_bin)
+        # print('IND FITNESS:', ind_fitness)
+        # print('BEST OF RUN FITNESS', best_of_run_f)
         # print('OUT OF RANGE BUT BEST OF RUN')
         # print(ind_fitness, '<', best_of_run_f)
         return True
-    
+    # print('REJECTING')
     return False
 
 def update_hist(target_hist, pop_hist_fitness, ind_bin, ind_fitness):
