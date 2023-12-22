@@ -184,6 +184,43 @@ class GPTree:
             self.right = GPTree(terminals = self.terminals)
             self.right.random_tree(grow, max_depth, depth = depth + 1)
 
+    def size(self):
+        """
+        Number of nodes
+        """
+        if self.node_value in self.terminals:
+            return 1
+        
+        l = self.left.size()  if self.left  else 0
+        r = self.right.size() if self.right else 0
+        return 1 + l + r
+    
+    def number_operations(self):
+        if self.node_value in self.terminals:
+            return 0
+        
+        l = self.left.number_operations() if self.left else 0
+        r = self.right.number_operations() if self.right else 0
+        return 1 + l + r
+
+    def used_features(self):
+        if self.node_value in self.terminals:
+            return self.node_value[1:]
+        
+        l = self.left.used_features() if self.left else None
+        r = self.right.used_features() if self.right else None
+
+        new_feats = []
+        if l is not None:
+            new_feats.extend(l)
+        if r is not None:
+            new_feats.extend(r)
+
+        return new_feats
+    
+    def number_feats(self):
+        return len(set(self.used_features()))
+
     def mutation(self):
         """
         Standard one-point mutation
@@ -199,16 +236,6 @@ class GPTree:
         # self.create_safe_expression()
         self.create_lambda_function()
 
-    def size(self):
-        """
-        Number of nodes
-        """
-        if self.node_value in self.terminals:
-            return 1
-        
-        l = self.left.size()  if self.left  else 0
-        r = self.right.size() if self.right else 0
-        return 1 + l + r
 
     def build_subtree(self):
         """

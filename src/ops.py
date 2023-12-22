@@ -1,3 +1,5 @@
+import  numpy as np
+
 def add(x, y):
     return x + y
 
@@ -14,11 +16,20 @@ def div(x, y):
     
     return x / y
 
+def cos(x):
+    return np.cos(x)
+
+def sin(x):
+    return np.sin(x)
+
+def sqrt(x):
+    return np.sqrt(x)
+
 FUNCTIONS = [add, sub, mul, div]
 
 MAPPING = {
     'add': '+',
     'sub': '-',
     'mul': '*',
-    'div': '/'
+    'div': '/',
 }

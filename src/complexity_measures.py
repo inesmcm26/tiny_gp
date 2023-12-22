@@ -1,6 +1,7 @@
 from scipy.spatial.distance import pdist
 import numpy as np
 import sympy as sp
+import pandas as pd
 from ops import FUNCTIONS, MAPPING, add, sub, mul, div
 
 
@@ -90,55 +91,14 @@ def init_slope_based_complexity(dataset, target):
         # Values of feature j
         p_j = dataset[:, j].flatten()
 
-        # Get unique observations and their indices
-        unique_obs, inverse_indices = np.unique(p_j, return_inverse=True)
-        target_sums = np.zeros_like(unique_obs, dtype=np.float64)
-        # Group by unique observations and average the target
-        np.add.at(target_sums, inverse_indices, target)
-        p_j = unique_obs
-        target_j = target_sums / np.bincount(inverse_indices)
-        
-        # List of the ordered indexes of feature j
-        q_j = np.argsort(p_j)
+        # Calculate median prediction when there's more than one obs with same feature value
+        df = pd.DataFrame({'Feature': p_j, 'Prediction': target})
+        median_predictions = df.groupby('Feature')['Prediction'].median().reset_index()
 
-        pc_j = 0
-
-        for i in range(len(q_j) - 2):
-            idx = q_j[i]
-            next_idx = q_j[i + 1]
-            next_next_idx = q_j[i + 2]
-
-            # TODO: 0 or continue when both are 0??
-
-            first = (target_j[next_idx] - target_j[idx]) / (p_j[next_idx] - p_j[idx])
-
-            second = (target_j[next_next_idx] - target_j[next_idx]) / (p_j[next_next_idx] - p_j[next_idx])
-
-            pc_j += abs(first - second)
-
-        complexity += pc_j
-    
-    print('END INIT. MAX COMPLEXITY:', complexity)
-    return complexity
-
-def slope_based_complexity(max_complexity, best_ind, dataset):
-
-    preds = [best_ind.compute_tree(obs) for obs in dataset]
-
-    complexity = 0
-
-    for j in range(dataset.shape[1]):
-        
-        # Values of feature j
-        p_j = dataset[:, j].flatten()
-
-        # Get unique observations and their indices
-        unique_obs, inverse_indices = np.unique(p_j, return_inverse = True)
-        preds_sums = np.zeros_like(unique_obs, dtype = np.float64)
-        # Group by unique observations and average the target
-        np.add.at(preds_sums, inverse_indices, preds)
-        p_j = unique_obs
-        preds_j = preds_sums / np.bincount(inverse_indices)
+        # Unique feature values
+        p_j = median_predictions['Feature'].values
+        # Unique feature values predictions
+        preds_j = median_predictions['Prediction'].values
         
         # List of the ordered indexes of feature j
         q_j = np.argsort(p_j)
@@ -154,13 +114,62 @@ def slope_based_complexity(max_complexity, best_ind, dataset):
 
             if p_j[next_idx] == p_j[idx]:
                 raise Exception('SOMETHING WRONG 1')
-                first = 0
             else:
                 first = (preds_j[next_idx] - preds_j[idx]) / (p_j[next_idx] - p_j[idx])
 
             if p_j[next_next_idx] == p_j[next_idx]:
                 raise Exception('SOMETHING WRONG 2')
-                second = 0
+            else:
+                second = (preds_j[next_next_idx] - preds_j[next_idx]) / (p_j[next_next_idx] - p_j[next_idx])
+
+            pc_j += abs(first - second)
+
+        complexity += pc_j
+    
+    print('END INIT. MAX COMPLEXITY:', complexity)
+    return complexity
+
+def slope_based_complexity(max_complexity, best_ind, dataset):
+    # Scale feature beforehand
+    # Median of outputs of obs with same feature value
+
+    preds = [best_ind.compute_tree(obs) for obs in dataset]
+
+    complexity = 0
+
+    for j in range(dataset.shape[1]):
+        
+        # Values of feature j
+        p_j = dataset[:, j].flatten()
+
+        # Calculate median prediction when there's more than one obs with same feature value
+        df = pd.DataFrame({'Feature': p_j, 'Prediction': preds})
+        median_predictions = df.groupby('Feature')['Prediction'].median().reset_index()
+
+        # Unique feature values
+        p_j = median_predictions['Feature'].values
+        # Unique feature values predictions
+        preds_j = median_predictions['Prediction'].values
+        
+        # List of the ordered indexes of feature j
+        q_j = np.argsort(p_j)
+
+        pc_j = 0
+
+        for i in range(len(q_j) - 2):
+            idx = q_j[i]
+            next_idx = q_j[i + 1]
+            next_next_idx = q_j[i + 2]
+
+            # TODO: 0 or continue when both are 0??
+
+            if p_j[next_idx] == p_j[idx]:
+                raise Exception('SOMETHING WRONG 1')
+            else:
+                first = (preds_j[next_idx] - preds_j[idx]) / (p_j[next_idx] - p_j[idx])
+
+            if p_j[next_next_idx] == p_j[next_idx]:
+                raise Exception('SOMETHING WRONG 2')
             else:
                 second = (preds_j[next_next_idx] - preds_j[next_idx]) / (p_j[next_next_idx] - p_j[next_idx])
 

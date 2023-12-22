@@ -16,8 +16,6 @@ def init_population(terminals):
     # Number of individuals of each depth and initialized with each method
     inds_per_depth = int((POP_SIZE / (MAX_INITIAL_DEPTH - 1)) / 2)
 
-    print(inds_per_depth)
-
     pop = []
     pop_str = []
 
@@ -100,11 +98,12 @@ def evolve(train_dataset, test_dataset, train_target, test_target, terminals):
 
     population = init_population(terminals) 
 
-    # for ind in population:
-    #     ind.print_tree()
-    #     print(ind.create_expression())
-    #     print(ind.tree_lambda.expr)
-    #     print('----------------------')
+    for ind in population:
+        ind.print_tree()
+        print(ind.number_operations())
+        print(len(set(ind.used_features())))
+        print('----------------------')
+ 
 
     # Upper bounds for complexities
     z, max_IODC = init_IODC(train_dataset, train_target)
@@ -141,11 +140,18 @@ def evolve(train_dataset, test_dataset, train_target, test_target, terminals):
     # Save mean sizes
     mean_size = [np.mean(size_distribution[0])]
     # Save measure of interpretability
+    # Number of ops
+    no = [best_of_run.number_operations()]
+    no_distribution = [[ind.number_operations() for ind in population]]
+    mean_no = [np.mean(no_distribution[0])]
+    # Number of features used
+    num_feats = [best_of_run.number_feats()]
+    num_feats_distribution = [[ind.number_feats() for ind in population]]
+    mean_number_feats = [np.mean(num_feats_distribution[-1])]
 
     for gen in range(1, GENERATIONS + 1):  
         # print('------------------------------------------ NEW GEN ------------------------------------------')
         print(gen)
-        start = time.time()
 
         new_pop=[]
 
@@ -246,6 +252,16 @@ def evolve(train_dataset, test_dataset, train_target, test_target, terminals):
         # Save mean size
         mean_size.append(np.mean(size_distribution[-1]))
 
+        # Save iterpretability
+        # Number of ops
+        no.append(best_of_run.number_operations())
+        no_distribution.append([ind.no_operations() for ind in population])
+        mean_no.append(np.mean(no_distribution[-1]))
+        # Number of unique feats
+        num_feats.append(best_of_run.number_feats())
+        num_feats_distribution.append([ind.number_feats() for ind in population])
+        mean_number_feats.append(np.mean(num_feats_distribution[-1]))
+
         print('NEW BEST FINTESS', best_of_run_f)
         print('FITNESS IN TEST', best_test_fit_list[-1])
         
@@ -262,7 +278,8 @@ def evolve(train_dataset, test_dataset, train_target, test_target, terminals):
         mean_train_fit_list, mean_test_fit_list, \
         iodc, mean_iodc, iodc_distribution, \
         slope, mean_slope, slope_distribution, \
-        size, mean_size, size_distribution
+        size, mean_size, size_distribution, \
+        no, mean_no, no_distribution
     
 # if __name__== "__main__":
 #   best_train_fit_list, best_test_fit_list, best_ind_list, best_of_run_gen = evolve()
