@@ -181,13 +181,13 @@ def evolve(train_dataset, test_dataset, train_target, test_target, terminals):
 
             prob = random()
 
-            parent = tournament(population, train_fitnesses)
+            parent = lexitournament(population, train_fitnesses)
 
             # Crossover
             if prob < XO_RATE:
 
                 # print('CROSSOVER')
-                parent2 = tournament(population, train_fitnesses)
+                parent2 = lexitournament(population, train_fitnesses)
 
                 parent_orig = deepcopy(parent)
                 parent2_orig = deepcopy(parent)
