@@ -284,7 +284,8 @@ def evolve(train_dataset, test_dataset, train_target, test_target, terminals):
         iodc, mean_iodc, iodc_distribution, \
         slope, mean_slope, slope_distribution, \
         size, mean_size, size_distribution, \
-        no, mean_no, no_distribution
+        no, mean_no, no_distribution, \
+        num_feats, mean_number_feats, num_feats_distribution
     
 # if __name__== "__main__":
 #   best_train_fit_list, best_test_fit_list, best_ind_list, best_of_run_gen = evolve()
