@@ -14,37 +14,57 @@ def init_population(terminals):
     """
 
     # Number of individuals of each depth and initialized with each method
-    inds_per_depth = int((POP_SIZE / (MAX_INITIAL_DEPTH + 1)) / 2)
+    inds_per_depth = int((POP_SIZE / (MAX_INITIAL_DEPTH - 1)) / 2)
+
+    print(inds_per_depth)
 
     pop = []
-    for max_depth in range(MIN_DEPTH, MAX_INITIAL_DEPTH + 1):
-        
+    pop_str = []
+
+    for max_depth in range(MIN_DEPTH, MAX_INITIAL_DEPTH):
+
         # Grow
         for _ in range(inds_per_depth):
-            ind = GPTree(terminals = terminals)
-            ind.random_tree(grow = True, max_depth = max_depth)
-            ind.create_lambda_function() # CREATE LAMBDA FUNCTION HERE!
+
+            for _ in range(20): 
+                ind = GPTree(terminals = terminals)
+                ind.random_tree(grow = True, max_depth = max_depth)
+                ind.create_lambda_function() # CREATE LAMBDA FUNCTION HERE!
+
+                if ind.tree2_string() not in pop_str:
+                    break
 
             pop.append(ind) 
+            pop_str.append(ind.tree2_string())
         
         # Full
         for _ in range(inds_per_depth):
-            ind = GPTree(terminals = terminals)
-            ind.random_tree(grow = False, max_depth = max_depth)  
-            ind.create_lambda_function() # CREATE LAMBDA FUNCTION HERE!
 
-            pop.append(ind) 
+            for _ in range(20):
+                ind = GPTree(terminals = terminals)
+                ind.random_tree(grow = True, max_depth = max_depth)  
+                ind.create_lambda_function() # CREATE LAMBDA FUNCTION HERE!
 
+                if ind.tree2_string() not in pop_str:
+                    break
+
+
+            pop.append(ind)
+            pop_str.append(ind.tree2_string())
 
     # Edge case
     while len(pop) != POP_SIZE:
-        # Generate random tree with random method to fill population
-        max_depth = randint(MIN_DEPTH, MAX_INITIAL_DEPTH)
-        grow = True if random() < 0.5 else False
-        ind = GPTree(terminals = terminals)
-        ind.random_tree(grow = grow, max_depth = max_depth)
-        ind.create_lambda_function() # CREATE LAMBDA FUNCTION HERE!
-        pop.append(ind) 
+        for _ in range(20):
+            # Generate random tree with grow method at higher level to fill population
+            ind = GPTree(terminals = terminals)
+            ind.random_tree(grow = 1, max_depth = MAX_INITIAL_DEPTH)
+            ind.create_lambda_function() # CREATE LAMBDA FUNCTION HERE!
+
+            if ind.tree2_string() not in pop_str:
+                break
+
+        pop.append(ind)
+        pop_str.append(ind.tree2_string())
 
     return pop
 
