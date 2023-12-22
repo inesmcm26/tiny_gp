@@ -41,7 +41,7 @@ def init_population(terminals):
 
             for _ in range(20):
                 ind = GPTree(terminals = terminals)
-                ind.random_tree(grow = False, max_depth = max_depth)  
+                ind.random_tree(grow = True, max_depth = max_depth)  
                 ind.create_lambda_function() # CREATE LAMBDA FUNCTION HERE!
 
                 if ind.tree2_string() not in pop_str:
@@ -178,7 +178,7 @@ def evolve(train_dataset, test_dataset, train_target, test_target, terminals):
         new_train_fitnesses = []
 
         while len(new_pop) < POP_SIZE:
-            
+
             prob = random()
 
             parent = tournament(population, train_fitnesses)
@@ -208,9 +208,6 @@ def evolve(train_dataset, test_dataset, train_target, test_target, terminals):
 
                 parent_fitness = fitness(parent, train_dataset, train_target)
                 parent2_fitness = fitness(parent2, train_dataset, train_target)
-
-                if parent.depth() > MAX_DEPTH or parent2.depth() > MAX_DEPTH:
-                    raise Exception('Crossover generated an individual that exceeds depth.')
                 
                 # First child
                 if check_bin_capacity(target_hist, pop_hist_fitnesses, ind_bin = parent.get_bin(),
@@ -256,8 +253,6 @@ def evolve(train_dataset, test_dataset, train_target, test_target, terminals):
                 if parent.depth() > MAX_DEPTH:
                     parent = parent_orig
 
-                if parent.depth() > MAX_DEPTH:
-                    raise Exception('Mutation generated an individual that exceeds depth.')
 
                 if check_bin_capacity(target_hist, pop_hist_fitnesses, ind_bin = parent.get_bin(),
                                       ind_fitness = parent_fitness,
