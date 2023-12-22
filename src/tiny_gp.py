@@ -188,7 +188,12 @@ def evolve(train_dataset, test_dataset, train_target, test_target, terminals):
             # Mutation
             elif prob < XO_RATE + PROB_MUTATION:
 
+                parent_orig = deepcopy(parent)
+
                 parent.mutation()
+
+                if parent.depth() > MAX_DEPTH:
+                    parent = parent2_orig
 
                 if parent.depth() > MAX_DEPTH:
                     raise Exception('Mutation generated an individual that exceeds depth.')
