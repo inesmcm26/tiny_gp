@@ -98,11 +98,11 @@ def evolve(train_dataset, test_dataset, train_target, test_target, terminals):
 
     population = init_population(terminals) 
 
-    for ind in population:
-        ind.print_tree()
-        print(ind.number_operations())
-        print(len(set(ind.used_features())))
-        print('----------------------')
+    # for ind in population:
+    #     ind.print_tree()
+    #     print(ind.number_operations())
+    #     print(len(set(ind.used_features())))
+    #     print('----------------------')
  
 
     # Upper bounds for complexities
@@ -255,7 +255,7 @@ def evolve(train_dataset, test_dataset, train_target, test_target, terminals):
         # Save iterpretability
         # Number of ops
         no.append(best_of_run.number_operations())
-        no_distribution.append([ind.no_operations() for ind in population])
+        no_distribution.append([ind.number_operations() for ind in population])
         mean_no.append(np.mean(no_distribution[-1]))
         # Number of unique feats
         num_feats.append(best_of_run.number_feats())
