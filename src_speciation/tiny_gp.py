@@ -1,4 +1,4 @@
-from random import randint, random, choice
+from random import randint, random, choice, sample
 from copy import deepcopy
 import numpy as np
 from sklearn.model_selection import KFold
@@ -93,6 +93,8 @@ def tournament(population, fitnesses):
             
 def evolve_species(population, train_dataset, train_target):
 
+    if len(population) != POP_SIZE:
+        raise Exception('SOMETHIGN WRONG')
     # print('TRAIN DATASET')
     # print(train_dataset)
 
@@ -106,9 +108,9 @@ def evolve_species(population, train_dataset, train_target):
 
     train_fitnesses = [fitness(ind, train_dataset, train_target) for ind in population]
 
-    for gen in range(1, GENERATIONS_PER_SPLIT + 1):  
+    for sub_gen in range(1, GENERATIONS_PER_SPLIT + 1):  
         # print('------------------------------------------ NEW GEN ------------------------------------------')
-        print(gen)
+        print('Sub generation:', sub_gen)
 
         new_pop=[]
 
@@ -125,7 +127,7 @@ def evolve_species(population, train_dataset, train_target):
                 parent2 = tournament(population, train_fitnesses)
 
                 parent_orig = deepcopy(parent)
-                parent2_orig = deepcopy(parent)
+                parent2_orig = deepcopy(parent2)
 
                 parent.crossover(parent2)
 
@@ -150,7 +152,7 @@ def evolve_species(population, train_dataset, train_target):
                 parent.mutation()
 
                 if parent.depth() > MAX_DEPTH:
-                    parent = parent2_orig
+                    parent = parent_orig
 
                 if parent.depth() > MAX_DEPTH:
                     raise Exception('Mutation generated an individual that exceeds depth.')
@@ -165,7 +167,6 @@ def evolve_species(population, train_dataset, train_target):
 
         # Check if len population exceeded
         if len(new_pop) > POP_SIZE:
-            print('POP SIZE EXCEEDED')
             # Remove worst individual
             idx_worst = train_fitnesses.index(max(train_fitnesses))
             new_pop.pop(idx_worst)
@@ -223,48 +224,103 @@ def evolve(df_train, df_test, train_target, test_target, terminals):
     num_feats_distribution = []
     mean_number_feats = []
 
-    for gen in range(1, GENERATIONS + 1):
+    nr_splits = DATASET_SPLITS
+    random_st = 1
 
-        kf = KFold(n_splits = DATASET_SPLITS)
+    for gen in range(1, GENERATIONS + 1):
+        print('Generation:', gen)
+
+        # # Increase eas split data every once in a while
+        # if gen % (GENERATIONS / DATASET_SPLITS) == 0:
+        #     # nr_splits = nr_splits - 1
+        #     random_st = gen
+        #     print('DECREMENTING SPLITS. NEW NR SPLITS:', nr_splits)
 
         if gen == 1:
             population = init_population(terminals) 
             print('FIRST GEN. NEW RANDOM POPULATION')
         else:
             population = total_pop
+
             print(f'INTERMEDIATE GEN {gen}. POP IS POP POPULATION')
+
+        if len(population) != POP_SIZE:
+            raise Exception('SOMETHING WRONG WITH POP SIZE')
+
+        pops = [deepcopy(population) for _ in range(DATASET_SPLITS)]
+        new_pops = []
 
         total_pop = []
 
-        # Evolve a population for each split for GENERATIONS_PER_SPLIT generations
-        for train_index, val_index in kf.split(df_train):
+        for round_idx in range(DATASET_SPLITS):
+            print(f'ROUND {round_idx}')
 
-            X_train, X_val = df_train[train_index], df_train[val_index]
-            y_train, y_val = train_target[train_index], train_target[val_index]
+            if round_idx > 0:
+                pops = new_pops
+                new_pops = []
 
-            species_pop, train_fitnesses = evolve_species(population, X_train, y_train)
 
-            # print('SPECIES POP:', species_pop)
+            if nr_splits >= 2:
+                # kf = KFold(n_splits = nr_splits, random_state = gen, shuffle = True)
+                kf = KFold(n_splits = nr_splits, random_state = random_st, shuffle = True)
 
-            # Sort fitnesses
-            sorted_fitnesses = np.argsort(train_fitnesses)
-            # Get POP_SIZE / DATASET_SPLITS individuals with best fitness
-            # Get their train and test fitness
-            num_inds_to_keep = int(POP_SIZE / DATASET_SPLITS)
-            top_individuals = np.array(species_pop)[sorted_fitnesses][:num_inds_to_keep]
+                # Evolve a population for each split for GENERATIONS_PER_SPLIT generations
+                for split_idx, (train_index, val_index) in enumerate(kf.split(df_train)):
 
-            # Add best individuals from each species
-            total_pop.extend(top_individuals)
+                    if split_idx - 1 < 0:
+                        pop_idx = DATASET_SPLITS - 1
+                    else:
+                        pop_idx = split_idx - 1
 
-            # print('BEST INDIVIDUALS OF SPECIES FITNESS: ', train_fitnesses)
-            # print('NEW TOTAL POP:', total_pop)
+                    population =  pops[pop_idx]
+
+                    X_train, X_val = df_train[train_index], df_train[val_index]
+                    y_train, y_val = train_target[train_index], train_target[val_index]
+
+                    # Train on the smallest subset
+                    species_pop, train_fitnesses = evolve_species(population, X_val, y_val)
+
+                    # # Choose N random
+                    # num_inds_to_keep = int(np.ceil(POP_SIZE / nr_splits))
+                    # top_individuals = sample(species_pop, num_inds_to_keep)
+
+                    # print('SPECIES POP:', species_pop)
+                    # If in the last round, save best of populations
+                    if round_idx == DATASET_SPLITS - 1:
+                        # Sort fitnesses
+                        sorted_fitnesses = np.argsort(train_fitnesses)
+                        # Get POP_SIZE / DATASET_SPLITS individuals with best fitness
+                        # Get their train and test fitness
+                        num_inds_to_keep = int(np.ceil(POP_SIZE / nr_splits))
+                        top_individuals = np.array(species_pop)[sorted_fitnesses][:num_inds_to_keep]
+
+                        # Add best individuals from each species
+                        total_pop.extend(top_individuals)
+
+                    new_pops.append(species_pop)
+
+                    # print('BEST INDIVIDUALS OF SPECIES FITNESS: ', np.array(train_fitnesses)[sorted_fitnesses][:num_inds_to_keep])
+                    # print('NEW TOTAL POP:', total_pop)
+            else:
+                # In last split use the whole dataset
+                X_val, y_val = df_train, train_target
+                # Train on the smallest subset
+                total_pop, train_fitnesses = evolve_species(population, X_val, y_val)
+
+        # If population size was exeeded because of rounding problems
+        while len(total_pop) != POP_SIZE:
+            to_remove_idx = randint(0, len(total_pop) - 1)
+            total_pop.pop(to_remove_idx)
 
         # Get train fitnesses on entire train dataset of top species individuals
         top_train_fitnesses = [fitness(ind, df_train, train_target) for ind in total_pop]
         top_test_fitnesses = [fitness(ind, df_test, test_target) for ind in total_pop]
 
+        print('NEW GENERAL MIN TRAIN FITNESS', min(top_train_fitnesses))
+        print('NEW GENERAL TEST FITNESS', fitness(deepcopy(total_pop[top_train_fitnesses.index(min(top_train_fitnesses))]) , df_test, test_target))
         if min(top_train_fitnesses) < best_of_run_f:
             best_of_run_f = min(top_train_fitnesses)
+            best_of_run_gen = gen
             best_of_run = deepcopy(total_pop[top_train_fitnesses.index(best_of_run_f)])  
         
         # Save best train performance
@@ -282,8 +338,8 @@ def evolve(df_train, df_test, train_target, test_target, terminals):
         slope.append(slope_based_complexity(max_slope_complexity, best_of_run, df_train))
 
         # Save complexity distributions
-        iodc_distribution.append([IODC(max_IODC, z, ind, df_train) for ind in population])
-        slope_distribution.append([slope_based_complexity(max_slope_complexity, ind, df_train) for ind in population])
+        iodc_distribution.append([IODC(max_IODC, z, ind, df_train) for ind in total_pop])
+        slope_distribution.append([slope_based_complexity(max_slope_complexity, ind, df_train) for ind in total_pop])
 
         # Save mean complexities
         mean_iodc.append(np.mean(iodc_distribution[-1]))
@@ -292,19 +348,19 @@ def evolve(df_train, df_test, train_target, test_target, terminals):
         # Save size
         size.append(best_of_run.size())
         # Save size distribution
-        size_distribution.append([ind.size() for ind in population])
+        size_distribution.append([ind.size() for ind in total_pop])
         # Save mean size
         mean_size.append(np.mean(size_distribution[-1]))
 
         # Save iterpretability
         # Number of ops
         no.append(best_of_run.number_operations())
-        no_distribution.append([ind.number_operations() for ind in population])
+        no_distribution.append([ind.number_operations() for ind in total_pop])
         mean_no.append(np.mean(no_distribution[-1]))
 
         # Number of unique feats
         num_feats.append(best_of_run.number_feats())
-        num_feats_distribution.append([ind.number_feats() for ind in population])
+        num_feats_distribution.append([ind.number_feats() for ind in total_pop])
         mean_number_feats.append(np.mean(num_feats_distribution[-1]))
 
     
@@ -319,11 +375,17 @@ def evolve(df_train, df_test, train_target, test_target, terminals):
         iodc, mean_iodc, iodc_distribution, \
         slope, mean_slope, slope_distribution, \
         size, mean_size, size_distribution, \
-        no, mean_no, no_distribution
+        no, mean_no, no_distribution, \
+        num_feats, mean_number_feats, num_feats_distribution
 
 
 # Variations:
-# - Train on the test splits instead, to increase speciation
+# - Train on the test splits instead, to increase speciation -> They become too good in their splits but the best overall individual has already been found and it just becomes constant DONE
+# - Increase size of splits every once in a while -> To decrease speciation and make individuals generalize DONE
+# - Randomize splits every generation -> Doesn't help. Individuals learn the whole dataset anyway and don't generalize
+# - Randomize every N generations DONE -> Doesn't help
+# - Instead of selecting best, select random DONE -> 
+# - Put individuals from one population in another one etc. Every N generations, choose overall best and continue
 # - Choose top individuals based on the same set it was trained on and ignore the rest -> Evaluate on the test set in the end DONE
 # - Choose top individuals based on the entire train + val dataset to choose best individuals -> Evaluate on the test set in the end
 # - Choose top individuals based on the set in which it was not trained on to choose best individuals -> Evaluate on the test set in the end 
