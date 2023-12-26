@@ -1,9 +1,9 @@
 POP_SIZE            = 100   # population size
-MIN_DEPTH           = 0    # minimal initial random tree depth
-MAX_INITIAL_DEPTH   = 6    # maximal initial random tree depth
+MIN_DEPTH           = 1    # minimal initial random tree depth
+MAX_INITIAL_DEPTH   = 7    # maximal initial random tree depth
 MAX_DEPTH           = 17
-MAX_COMPLEXITY      = 0.3
 GENERATIONS         = 500  # maximal number of generations to run evolution
+GENERATION_BOUND    = 100
 TOURNAMENT_SIZE     = 4    # size of tournament for tournament selection
 XO_RATE             = 0.9  # crossover rate 
 PROB_MUTATION       = 0.1  # per-node mutation probability

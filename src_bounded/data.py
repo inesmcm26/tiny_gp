@@ -1,5 +1,6 @@
 from random import randint, seed
 import pandas as pd
+from sklearn.preprocessing import MinMaxScaler
 
 NR_FEATS = 2
 TRAIN_PERC = 0.7
@@ -32,10 +33,21 @@ def read_dataset(name, run_nr):
     train = pd.read_csv(PATH + f'/train_{run_nr}.csv', index_col = 0)
     test = pd.read_csv(PATH + f'/test_{run_nr}.csv', index_col = 0)
 
-    train_dataset = train.drop('Target', axis = 1).to_numpy()
+    train_dataset = train.drop('Target', axis = 1)
     train_target = train['Target'].to_numpy()
 
-    test_dataset = test.drop('Target', axis = 1).to_numpy()
+    test_dataset = test.drop('Target', axis = 1)
     test_target = test['Target'].to_numpy()
 
+    train_dataset, test_dataset = scale_numerical_features(train_dataset, test_dataset)
+
     return train_dataset, test_dataset, train_target, test_target
+
+def scale_numerical_features(train_df, test_df):
+    scaler = MinMaxScaler()
+
+    train_df = scaler.fit_transform(train_df)
+
+    test_df = scaler.transform(test_df)
+
+    return train_df, test_df
