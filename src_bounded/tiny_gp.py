@@ -112,6 +112,8 @@ def evolve(train_dataset, test_dataset, train_target, test_target, terminals):
     train_fitnesses = [fitness(ind, train_dataset, train_target) for ind in population]
     test_fitnesses = [fitness(ind, test_dataset, test_target) for ind in population]
 
+    print('Fitness done')
+
     best_of_run_f = min(train_fitnesses)
     best_of_run_gen = 0
     best_of_run = deepcopy(population[train_fitnesses.index(min(train_fitnesses))])
@@ -133,21 +135,32 @@ def evolve(train_dataset, test_dataset, train_target, test_target, terminals):
     # Save mean complexities
     mean_iodc = [np.mean(iodc_distribution[0])]
     mean_slope = [np.mean(slope_distribution[0])]
+
+    print('Complexities done')
+
     # Save best ind size
     size = [best_of_run.size()]
     # Save sizes
     size_distribution = [[ind.size() for ind in population]]
     # Save mean sizes
     mean_size = [np.mean(size_distribution[0])]
+
+    print('Size done')
+
     # Save measure of interpretability
     # Number of ops
     no = [best_of_run.number_operations()]
     no_distribution = [[ind.number_operations() for ind in population]]
     mean_no = [np.mean(no_distribution[0])]
+
+    print('Number ops done')
+
     # Number of features used
     num_feats = [best_of_run.number_feats()]
     num_feats_distribution = [[ind.number_feats() for ind in population]]
     mean_number_feats = [np.mean(num_feats_distribution[-1])]
+
+    print('Number feats done')
 
     complexity_bound = None
 
@@ -189,10 +202,14 @@ def evolve(train_dataset, test_dataset, train_target, test_target, terminals):
                     raise Exception('Crossover generated an individual that exceeds depth.')
                 
                 # Only add individual if it doesn't exceed maximum complexity
-                if gen >= GENERATION_BOUND and slope_based_complexity(max_slope_complexity, parent, train_dataset) < complexity_bound:
+                if gen < GENERATION_BOUND:
+                    new_pop.append(parent)
+                elif gen >= GENERATION_BOUND and slope_based_complexity(max_slope_complexity, parent, train_dataset) < complexity_bound:
                     new_pop.append(parent)
 
-                if gen >= GENERATION_BOUND and slope_based_complexity(max_slope_complexity, parent2, train_dataset) < complexity_bound:
+                if gen < GENERATION_BOUND:
+                    new_pop.append(parent2)
+                elif gen >= GENERATION_BOUND and slope_based_complexity(max_slope_complexity, parent2, train_dataset) < complexity_bound:
                     new_pop.append(parent2)
 
             # Mutation
@@ -208,13 +225,17 @@ def evolve(train_dataset, test_dataset, train_target, test_target, terminals):
                 if parent.depth() > MAX_DEPTH:
                     raise Exception('Mutation generated an individual that exceeds depth.')
                 
-                if gen >= GENERATION_BOUND and slope_based_complexity(max_slope_complexity, parent, train_dataset) < complexity_bound:
+                if gen < GENERATION_BOUND:
+                    new_pop.append(parent)
+                elif gen >= GENERATION_BOUND and slope_based_complexity(max_slope_complexity, parent, train_dataset) < complexity_bound:
                     new_pop.append(parent)
             
             # NOTE: Replication may also occur if no condition is met
             else:
 
-                if gen >= GENERATION_BOUND and slope_based_complexity(max_slope_complexity, parent, train_dataset) < complexity_bound:
+                if gen < GENERATION_BOUND:
+                    new_pop.append(parent)
+                elif gen >= GENERATION_BOUND and slope_based_complexity(max_slope_complexity, parent, train_dataset) < complexity_bound:
                     new_pop.append(parent)
 
         new_train_fitnesses = [fitness(ind, train_dataset, train_target) for ind in new_pop]
