@@ -1,3 +1,4 @@
+import numpy as np
 from random import randint, seed
 import pandas as pd
 from sklearn.preprocessing import MinMaxScaler
@@ -38,10 +39,15 @@ def read_dataset(name, run_nr):
 
     test_dataset = test.drop('Target', axis = 1)
     test_target = test['Target'].to_numpy()
+    
+    # Val features values are already between 0 and 1
+    val_dataset = pd.read_csv(PATH + f'/val_{run_nr}.csv', index_col = 0).to_numpy()
 
     train_dataset, test_dataset = scale_numerical_features(train_dataset, test_dataset)
 
-    return train_dataset, test_dataset, train_target, test_target
+    train_val_dataset = np.concatenate((train_dataset, val_dataset), axis = 0)
+
+    return train_dataset, val_dataset, test_dataset, train_val_dataset, train_target, test_target
 
 def scale_numerical_features(train_df, test_df):
     scaler = MinMaxScaler()

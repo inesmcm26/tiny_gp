@@ -91,10 +91,21 @@ def tournament(population, fitnesses):
     # Return the winner
     return deepcopy(population[tournament[tournament_fitnesses.index(min(tournament_fitnesses))]]) 
             
-def evolve(train_dataset, test_dataset, train_target, test_target, terminals):
+def evolve(train_dataset, val_dataset, test_dataset, train_val_dataset, train_target, test_target, terminals):
 
     # print('TRAIN DATASET')
     # print(train_dataset)
+
+    # print('TRAIN SHAPE:', train_dataset.shape)
+    # print('TEST SHAPE:', test_dataset.shape)
+    # print('VAL SHAPE:', val_dataset.shape)
+    # print('TRAIN VAL SHAPE:', train_val_dataset.shape)
+
+    # print('Train head', train_dataset[:2])
+    # print('Val tail', train_dataset[:-3])
+
+    # print('Train val head', train_val_dataset[:2])
+    # print('Train val tail', train_val_dataset[:-3])
 
     population = init_population(terminals) 
 
@@ -106,7 +117,6 @@ def evolve(train_dataset, test_dataset, train_target, test_target, terminals):
  
 
     # Upper bounds for complexities
-    z, max_IODC = init_IODC(train_dataset, train_target)
     max_slope_complexity = init_slope_based_complexity(train_dataset, train_target)
 
     train_fitnesses = [fitness(ind, train_dataset, train_target) for ind in population]
@@ -127,14 +137,15 @@ def evolve(train_dataset, test_dataset, train_target, test_target, terminals):
     mean_train_fit_list = [np.mean(train_fitnesses)]
     mean_test_fit_list = [np.mean(test_fitnesses)]
     # Save complexities
-    iodc = [IODC(max_IODC, z, best_of_run, train_dataset)]
     slope = [slope_based_complexity(max_slope_complexity, best_of_run, train_dataset)]
+    slope_val = [slope_based_complexity(max_slope_complexity, best_of_run, val_dataset)]
+    slope_all = [slope_based_complexity(max_slope_complexity, best_of_run, train_val_dataset)]
     # Save complexity distributions
-    iodc_distribution = [[IODC(max_IODC, z, ind, train_dataset) for ind in population]]
     slope_distribution = [[slope_based_complexity(max_slope_complexity, ind, train_dataset) for ind in population]]
+    slope_val_distribution = [[slope_based_complexity(max_slope_complexity, ind, val_dataset) for ind in population]]
     # Save mean complexities
-    mean_iodc = [np.mean(iodc_distribution[0])]
     mean_slope = [np.mean(slope_distribution[0])]
+    mean_val_slope = [np.mean(slope_val_distribution[0])]
 
     print('Complexities done')
 
@@ -147,20 +158,20 @@ def evolve(train_dataset, test_dataset, train_target, test_target, terminals):
 
     print('Size done')
 
-    # Save measure of interpretability
-    # Number of ops
-    no = [best_of_run.number_operations()]
-    no_distribution = [[ind.number_operations() for ind in population]]
-    mean_no = [np.mean(no_distribution[0])]
+    # # Save measure of interpretability
+    # # Number of ops
+    # no = [best_of_run.number_operations()]
+    # no_distribution = [[ind.number_operations() for ind in population]]
+    # mean_no = [np.mean(no_distribution[0])]
 
-    print('Number ops done')
+    # print('Number ops done')
 
-    # Number of features used
-    num_feats = [best_of_run.number_feats()]
-    num_feats_distribution = [[ind.number_feats() for ind in population]]
-    mean_number_feats = [np.mean(num_feats_distribution[-1])]
+    # # Number of features used
+    # num_feats = [best_of_run.number_feats()]
+    # num_feats_distribution = [[ind.number_feats() for ind in population]]
+    # mean_number_feats = [np.mean(num_feats_distribution[-1])]
 
-    print('Number feats done')
+    # print('Number feats done')
 
     complexity_bound = None
 
@@ -271,35 +282,33 @@ def evolve(train_dataset, test_dataset, train_target, test_target, terminals):
         mean_test_fit_list.append(np.mean(test_fitnesses))
 
         # Save complexities
-        iodc.append(IODC(max_IODC, z, best_of_run, train_dataset))
         slope.append(slope_based_complexity(max_slope_complexity, best_of_run, train_dataset))
-
+        slope_val.append(slope_based_complexity(max_slope_complexity, best_of_run, val_dataset))
+        slope_all.append(slope_based_complexity(max_slope_complexity, best_of_run, train_val_dataset))
         # Save complexity distributions
-        iodc_distribution.append([IODC(max_IODC, z, ind, train_dataset) for ind in population])
         slope_distribution.append([slope_based_complexity(max_slope_complexity, ind, train_dataset) for ind in population])
+        slope_val_distribution.append([slope_based_complexity(max_slope_complexity, ind, val_dataset) for ind in population])
 
         # Save mean complexities
-        mean_iodc.append(np.mean(iodc_distribution[-1]))
         mean_slope.append(np.mean(slope_distribution[-1]))
+        mean_val_slope.append(np.mean(slope_val_distribution[-1]))
 
         # Save size
         size.append(best_of_run.size())
-
         # Save size distribution
         size_distribution.append([ind.size() for ind in population])
-
         # Save mean size
         mean_size.append(np.mean(size_distribution[-1]))
 
-        # Save iterpretability
-        # Number of ops
-        no.append(best_of_run.number_operations())
-        no_distribution.append([ind.number_operations() for ind in population])
-        mean_no.append(np.mean(no_distribution[-1]))
-        # Number of unique feats
-        num_feats.append(best_of_run.number_feats())
-        num_feats_distribution.append([ind.number_feats() for ind in population])
-        mean_number_feats.append(np.mean(num_feats_distribution[-1]))
+        # # Save iterpretability
+        # # Number of ops
+        # no.append(best_of_run.number_operations())
+        # no_distribution.append([ind.number_operations() for ind in population])
+        # mean_no.append(np.mean(no_distribution[-1]))
+        # # Number of unique feats
+        # num_feats.append(best_of_run.number_feats())
+        # num_feats_distribution.append([ind.number_feats() for ind in population])
+        # mean_number_feats.append(np.mean(num_feats_distribution[-1]))
 
         print('NEW BEST FINTESS', best_of_run_f)
         print('FITNESS IN TEST', best_test_fit_list[-1])
@@ -315,11 +324,12 @@ def evolve(train_dataset, test_dataset, train_target, test_target, terminals):
 
     return best_train_fit_list, best_test_fit_list, best_ind_list, best_of_run_gen, \
         mean_train_fit_list, mean_test_fit_list, \
-        iodc, mean_iodc, iodc_distribution, \
         slope, mean_slope, slope_distribution, \
-        size, mean_size, size_distribution, \
-        no, mean_no, no_distribution, \
-        num_feats, mean_number_feats, num_feats_distribution
+        slope_val, mean_val_slope, slope_val_distribution, \
+        slope_all, \
+        size, mean_size, size_distribution
+        # no, mean_no, no_distribution, \
+        # num_feats, mean_number_feats, num_feats_distribution
     
 # if __name__== "__main__":
 #   best_train_fit_list, best_test_fit_list, best_ind_list, best_of_run_gen = evolve()
