@@ -242,7 +242,7 @@ def evolve(train_dataset, test_dataset, augmented_dataset, train_target, test_ta
         # Save complexities
         # iodc.append(IODC(max_IODC, z, best_of_run, train_dataset))
         slope.append(slope_based_complexity(best_of_run, train_dataset))
-        slope_augmented(slope_based_complexity(best_of_run, augmented_dataset))
+        slope_augmented.append(slope_based_complexity(best_of_run, augmented_dataset))
         # Save complexity distributions
         # iodc_distribution.append([IODC(max_IODC, z, ind, train_dataset) for ind in population])
         slope_distribution.append([slope_based_complexity(ind, train_dataset) for ind in population])
@@ -250,7 +250,7 @@ def evolve(train_dataset, test_dataset, augmented_dataset, train_target, test_ta
         # Save mean complexities
         # mean_iodc.append(np.mean(iodc_distribution[-1]))
         mean_slope.append(np.mean(slope_distribution[-1]))
-        mean_slope_augmented(np.mean(slope_augmented_distribution[-1]))
+        mean_slope_augmented.append(np.mean(slope_augmented_distribution[-1]))
         # Save size
         size.append(best_of_run.size())
         # Save size distribution
@@ -270,6 +270,8 @@ def evolve(train_dataset, test_dataset, augmented_dataset, train_target, test_ta
 
         print('NEW BEST FINTESS', best_of_run_f)
         print('FITNESS IN TEST', best_test_fit_list[-1])
+        print('BEST INDIVIDUAL COMPLEXITY:', slope[-1])
+        print('BEST INDIVIDUAL AUGMENTED COMPLEXITY:', slope_augmented[-1])
         
         # Optimal solution found
         if best_of_run_f == 0:
