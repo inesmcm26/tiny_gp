@@ -1,4 +1,5 @@
 from random import random, randint, choice
+import re
 
 from configs import *
 from ops import FUNCTIONS, MAPPING, add, sub, mul, div
@@ -203,23 +204,20 @@ class GPTree:
         r = self.right.number_operations() if self.right else 0
         return 1 + l + r
 
-    def used_features(self):
-        if self.node_value in self.terminals:
-            return self.node_value[1:]
+    def used_feats(self):
+        str_expr = self.tree_lambda.expr
+
+        pattern = re.compile(r'\bx(\d+)\b')
+
+        matches = pattern.findall(str_expr)
         
-        l = self.left.used_features() if self.left else None
-        r = self.right.used_features() if self.right else None
+        # Convert feature numbers to integer and subtract 1 to get the feature index instead of the feature name
+        unique_feats = set(int(match) - 1 for match in matches)
 
-        new_feats = []
-        if l is not None:
-            new_feats.extend(l)
-        if r is not None:
-            new_feats.extend(r)
-
-        return new_feats
+        return list(unique_feats)
     
     def number_feats(self):
-        return len(set(self.used_features()))
+        return len(self.used_feats())
 
     def mutation(self):
         """
