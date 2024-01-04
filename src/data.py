@@ -1,4 +1,5 @@
-from random import randint, seed
+from random import randint, uniform
+import numpy as np
 import pandas as pd
 from sklearn.preprocessing import MinMaxScaler
 
@@ -41,7 +42,13 @@ def read_dataset(name, run_nr):
 
     train_dataset, test_dataset = scale_numerical_features(train_dataset, test_dataset)
 
-    return train_dataset, test_dataset, train_target, test_target
+    augmented_dataset = generate_intermediate_points(train_dataset)
+
+    aug_df = pd.DataFrame(augmented_dataset, columns = [f'x{i}' for i in range(1, augmented_dataset.shape[1] + 1)])
+
+    aug_df.to_csv(PATH + f'/augmented_{run_nr}.csv')
+
+    return train_dataset, test_dataset, augmented_dataset, train_target, test_target
 
 def scale_numerical_features(train_df, test_df):
     scaler = MinMaxScaler()
@@ -51,3 +58,25 @@ def scale_numerical_features(train_df, test_df):
     test_df = scaler.transform(test_df)
 
     return train_df, test_df
+
+def generate_intermediate_points(train_dataset):
+
+    new_df = pd.DataFrame(columns = [f'x{i}' for i in range(1, train_dataset.shape[1] + 1)])
+
+    for feat_idx in range(train_dataset.shape[1]): 
+
+        new_feat_vals = []
+
+        # Ordered feature values
+        ordered_train_dataset = np.sort(train_dataset[:, feat_idx].flatten())
+
+        for obs_idx in range(len(ordered_train_dataset) - 1):
+            interm = uniform(ordered_train_dataset[obs_idx], ordered_train_dataset[obs_idx + 1])
+
+            # Add newly generated obs
+            new_feat_vals.append(interm)
+
+        new_df[f'x{feat_idx + 1}'] = new_feat_vals
+
+    # Add new observations to the existing train dataset
+    return np.concatenate((train_dataset, new_df.to_numpy()), axis=0)
