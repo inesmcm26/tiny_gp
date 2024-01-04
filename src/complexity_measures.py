@@ -129,15 +129,20 @@ def init_slope_based_complexity(dataset, target):
     print('END INIT. MAX COMPLEXITY:', complexity)
     return complexity
 
-def slope_based_complexity(max_complexity, best_ind, dataset):
+def slope_based_complexity(ind, dataset):
     # Scale feature beforehand
     # Median of outputs of obs with same feature value
 
-    preds = [best_ind.compute_tree(obs) for obs in dataset]
+    preds = [ind.compute_tree(obs) for obs in dataset]
+
+    # This is a list with the feature numbers
+    used_feats = ind.used_feats()
+
+    # print('ONLY USING FEATS:', used_feats, 'for ind:', ind.tree_lambda.expr)
 
     complexity = 0
 
-    for j in range(dataset.shape[1]):
+    for j in used_feats:
         
         # Values of feature j
         p_j = dataset[:, j].flatten()
@@ -161,8 +166,6 @@ def slope_based_complexity(max_complexity, best_ind, dataset):
             next_idx = q_j[i + 1]
             next_next_idx = q_j[i + 2]
 
-            # TODO: 0 or continue when both are 0??
-
             if p_j[next_idx] == p_j[idx]:
                 raise Exception('SOMETHING WRONG 1')
             else:
@@ -174,11 +177,12 @@ def slope_based_complexity(max_complexity, best_ind, dataset):
                 second = (preds_j[next_next_idx] - preds_j[next_idx]) / (p_j[next_next_idx] - p_j[next_idx])
 
             pc_j += abs(first - second)
+    
+        # Calculate the mean of the slopes difference across the i=1..n-2 sum
+        mean_feat_complexity = (pc_j / (len(q_j) - 2)) if len(q_j) != 2 else 0
+        complexity = complexity + mean_feat_complexity
 
-        complexity += pc_j
-
-    # Normalize complexity
-    return complexity / max_complexity
+    return complexity
 
 def mean_slope_based_complexity(max_complexity, population, dataset):
     complexities = []
