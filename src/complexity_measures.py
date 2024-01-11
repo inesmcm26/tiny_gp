@@ -142,6 +142,10 @@ def slope_based_complexity(ind, dataset):
 
     complexity = 0
 
+    feats_complexity = {}
+
+    # print('INDIVIDUAL:', ind.tree_lambda.expr)
+
     for j in used_feats:
         
         # Values of feature j
@@ -155,7 +159,7 @@ def slope_based_complexity(ind, dataset):
         p_j = median_predictions['Feature'].values
         # Unique feature values predictions
         preds_j = median_predictions['Prediction'].values
-        
+     
         # List of the ordered indexes of feature j
         q_j = np.argsort(p_j)
 
@@ -179,10 +183,23 @@ def slope_based_complexity(ind, dataset):
             pc_j += abs(first - second)
     
         # Calculate the mean of the slopes difference across the i=1..n-2 sum
-        mean_feat_complexity = (pc_j / (len(q_j) - 2)) if len(q_j) != 2 else 0
-        complexity = complexity + mean_feat_complexity
+        mean_feat_complexity = (pc_j / (len(q_j) - 2)) if len(q_j) > 2 else 0
 
-    return complexity
+        feats_complexity[j] = mean_feat_complexity
+
+        complexity = complexity + mean_feat_complexity
+    
+    # print('DICTIONARY:', feats_complexity)
+    for feat in [int(term[1:]) - 1 for term in ind.terminals]:
+        # print('FEATURE IN TERMINALS', feat)
+        if feat not in feats_complexity.keys():
+            # print('FEATURE NOT IN DICTIONARY', feat)
+            feats_complexity[feat] = None
+
+    ordered_feats_complexity = [value for key, value in sorted(feats_complexity.items())]
+
+    # Returns a 
+    return complexity, ordered_feats_complexity
 
 def mean_slope_based_complexity(max_complexity, population, dataset):
     complexities = []
