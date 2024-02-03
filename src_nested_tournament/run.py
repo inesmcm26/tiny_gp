@@ -13,7 +13,7 @@ from configs_nested import GENERATIONS
 
 def run_stdGP(ds_name):
 
-    SAVE_PATH = f'/home/ines/Documents/tese/tiny_gp/results_augmented_feats/{ds_name}/'
+    SAVE_PATH = f'/home/ines/Documents/tese/tiny_gp/results_nested_tournament/{ds_name}/'
 
     # Check if the directory exists
     if not os.path.exists(SAVE_PATH):
