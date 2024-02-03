@@ -21,7 +21,7 @@ def run_stdGP(ds_name):
         os.makedirs(SAVE_PATH)
     
     # Run for 30 times with each dataset partition
-    for run_nr in tqdm(range(1, 2)): # TODO: CHANGE HERE!
+    for run_nr in tqdm(range(21, 31)): # TODO: CHANGE HERE!
         
         # Get correct data partition
         train_dataset, test_dataset, augmented_dataset, train_target, test_target = read_dataset(ds_name, run_nr)
@@ -33,7 +33,8 @@ def run_stdGP(ds_name):
             mean_train_fit_list, mean_test_fit_list, \
                  slope_list, \
                         slope_augmented_list, \
-                            features_contribution_list, features_contribution_augmented_list, \
+                            slope_test_list, \
+                            features_contribution_list, features_contribution_augmented_list, features_contribution_test_list, \
                             size_list, mean_size_list, size_distribution_list, \
                                 no_list, mean_no_list, no_distribution_list, \
                                     feats_list, mean_feats_list, feats_distribution_list = \
@@ -48,11 +49,13 @@ def run_stdGP(ds_name):
         slope = pd.DataFrame([slope_list], columns = [i for i in range(0, GENERATIONS + 1)])
         features_contribution = pd.DataFrame([features_contribution_list], columns = [i for i in range(0, GENERATIONS + 1)])
         features_contribution_augmented = pd.DataFrame([features_contribution_augmented_list], columns = [i for i in range(0, GENERATIONS + 1)])
+        features_contribution_test = pd.DataFrame([features_contribution_test_list], columns = [i for i in range(0, GENERATIONS + 1)])
         # mean_slope = pd.DataFrame([mean_slope_list], columns = [i for i in range(0, GENERATIONS + 1)])
         # slope_distribution = pd.DataFrame([slope_distribution_list], columns = [i for i in range(0, GENERATIONS + 1)])
         slope_augmented = pd.DataFrame([slope_augmented_list], columns = [i for i in range(0, GENERATIONS + 1)])
         # mean_slope_augmented = pd.DataFrame([mean_slope_augmented_list], columns = [i for i in range(0, GENERATIONS + 1)])
         # slope_augmented_distribution = pd.DataFrame([slope_augmented_distribution_list], columns = [i for i in range(0, GENERATIONS + 1)])
+        slope_test = pd.DataFrame([slope_test_list], columns = [i for i in range(0, GENERATIONS + 1)])
         size = pd.DataFrame([size_list], columns = [i for i in range(0, GENERATIONS + 1)])
         mean_size = pd.DataFrame([mean_size_list], columns = [i for i in range(0, GENERATIONS + 1)])
         size_distribution = pd.DataFrame([size_distribution_list], columns = [i for i in range(0, GENERATIONS + 1)])
@@ -76,8 +79,10 @@ def run_stdGP(ds_name):
         slope_augmented.to_csv(SAVE_PATH + f'slope_augmented_complexity_run{run_nr}.csv')
         # mean_slope_augmented.to_csv(SAVE_PATH + f'mean_slope_augmented_complexity_run{run_nr}.csv')
         # slope_augmented_distribution.to_csv(SAVE_PATH + f'slope_augmented_distribution_run{run_nr}.csv')
+        slope_test.to_csv(SAVE_PATH + f'slope_test_complexity_run{run_nr}.csv')
         features_contribution.to_csv(SAVE_PATH + f'features_contribution_run{run_nr}.csv')
         features_contribution_augmented.to_csv(SAVE_PATH + f'features_contribution_augmented_run{run_nr}.csv')
+        features_contribution_test.to_csv(SAVE_PATH + f'features_contribution_test_run{run_nr}.csv')
         size.to_csv(SAVE_PATH + f'size_run{run_nr}.csv')
         mean_size.to_csv(SAVE_PATH + f'mean_size_run{run_nr}.csv')
         size_distribution.to_csv(SAVE_PATH + f'size_distribution_run{run_nr}.csv')
@@ -97,6 +102,6 @@ def run_StdGP_all_ds():
         print(f'-------------------------------- DATASET {dataset} --------------------------------')
         run_stdGP(dataset)
 
-run_stdGP('Istanbul')
+run_stdGP('Toxicity')
 
 # run_StdGP_all_ds()

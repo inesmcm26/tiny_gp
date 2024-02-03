@@ -40,7 +40,7 @@ def init_population(terminals):
 
             for _ in range(20):
                 ind = GPTree(terminals = terminals)
-                ind.random_tree(grow = True, max_depth = max_depth)  
+                ind.random_tree(grow = False, max_depth = max_depth)  
                 ind.create_lambda_function() # CREATE LAMBDA FUNCTION HERE!
 
                 if ind.tree2_string() not in pop_str:
@@ -136,6 +136,10 @@ def evolve(train_dataset, test_dataset, augmented_dataset, train_target, test_ta
     slope_augmented_value, features_dict_augmented = slope_based_complexity(best_of_run, augmented_dataset)
     slope_augmented = [slope_augmented_value]
     features_contribution_augmented = [features_dict_augmented]
+
+    slope_test_value, features_dict_test = slope_based_complexity(best_of_run, test_dataset)
+    slope_test = [slope_test_value]
+    features_contribution_test = [features_dict_test]
 
     # print('SLOPE AUGMENTED:', slope)
     # print('FEATURES CONTRIBUTION AUGMENTED:', features_contribution)
@@ -262,9 +266,11 @@ def evolve(train_dataset, test_dataset, augmented_dataset, train_target, test_ta
 
         slope_augmented_value, features_dict_augmented = slope_based_complexity(best_of_run, augmented_dataset)
         slope_augmented.append(slope_augmented_value)
-
-        print('FEATURES DICT AUGMENTED:', features_dict_augmented)
         features_contribution_augmented.append(features_dict_augmented)
+
+        slope_test_value, features_dict_test = slope_based_complexity(best_of_run, test_dataset)
+        slope_test.append(slope_test_value)
+        features_contribution_test.append(features_dict_test)
 
         # print('SLOPE AUGMENTED AFTER GEN:', slope_augmented)
         # print('FEATURES AUGMENTED CONTRIBUTION AFTER GEN:', features_contribution_augmented)
@@ -309,7 +315,8 @@ def evolve(train_dataset, test_dataset, augmented_dataset, train_target, test_ta
         mean_train_fit_list, mean_test_fit_list, \
         slope, \
         slope_augmented, \
-        features_contribution, features_contribution_augmented, \
+        slope_test, \
+        features_contribution, features_contribution_augmented, features_contribution_test, \
         size, mean_size, size_distribution, \
         no, mean_no, no_distribution, \
         num_feats, mean_number_feats, num_feats_distribution
