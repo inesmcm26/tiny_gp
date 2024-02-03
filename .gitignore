@@ -1,15 +1,5 @@
 __pycache__
-results/
-results_iodc_only/
-results_bounded/
-results_OpEq/
-results_OpEq_after_changes/
-results_OpEq_after_changes_median/
-results_OpEq_complexity/
-results_OpEq_complexity_flat/
-results_OpEq_complexity_unbounded/
-results_OpEq_old/
-results_OpEq_old_mean/
-results_initial/
+results*
 run_notebook.ipynb
 notebooks/
+data/
