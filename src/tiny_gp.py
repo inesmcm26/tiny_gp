@@ -14,12 +14,14 @@ def init_population(terminals):
     """
 
     # Number of individuals of each depth and initialized with each method
-    inds_per_depth = int((POP_SIZE / (MAX_INITIAL_DEPTH - 1)) / 2)
+    inds_per_depth = int((POP_SIZE / (MAX_INITIAL_DEPTH)) / 2)
 
     pop = []
     pop_str = []
 
-    for max_depth in range(MIN_DEPTH, MAX_INITIAL_DEPTH):
+    for max_depth in range(MIN_DEPTH, MAX_INITIAL_DEPTH + 1):
+
+        print('MAX DEPTH', max_depth)
 
         # Grow
         for _ in range(inds_per_depth):
