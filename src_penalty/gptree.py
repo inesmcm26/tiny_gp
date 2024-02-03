@@ -1,7 +1,7 @@
 from random import random, randint, choice
 import re
 
-from configs import *
+from configs_penalty import *
 from ops import FUNCTIONS, MAPPING, add, sub, mul, div
 
 class GPTree:
@@ -59,7 +59,7 @@ class GPTree:
     def depth(self):
 
         if self.node_value in self.terminals:
-            return 0
+            return 1
         
         return max(self.left.depth() + 1, self.right.depth() + 1)
         
@@ -152,17 +152,18 @@ class GPTree:
         # else:
         #     return self.node_value
             
-    def random_tree(self, grow, max_depth, depth = 0):
+    def random_tree(self, grow, max_depth, depth = 1):
         """
         Create random tree using either grow or full method.
         This tree will be rooted on the current tree root node.
         """
         # Get a random function
-        if depth < MIN_DEPTH or (depth < max_depth and not grow): 
+        # If first node OR full and max_depth not reached
+        if depth < max_depth and not grow: 
             self.node_value = FUNCTIONS[randint(0, len(FUNCTIONS)-1)]
 
         # Get a random terminal
-        elif depth >= max_depth:   
+        elif depth == max_depth:   
             self.node_value = self.terminals[randint(0, len(self.terminals)-1)]
         
         # Intermediate depth, grow
@@ -177,11 +178,11 @@ class GPTree:
             #     self.node_value = self.terminals[randint(0, len(self.terminals)-1)]
             # else:
             #     self.node_value = FUNCTIONS[randint(0, len(FUNCTIONS)-1)]
-        
+                        
         # Generate sub trees
         if self.node_value in FUNCTIONS:
             self.left = GPTree(terminals = self.terminals)          
-            self.left.random_tree(grow, max_depth, depth = depth + 1)            
+            self.left.random_tree(grow, max_depth, depth = depth + 1)  
             self.right = GPTree(terminals = self.terminals)
             self.right.random_tree(grow, max_depth, depth = depth + 1)
 

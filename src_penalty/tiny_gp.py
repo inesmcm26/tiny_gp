@@ -3,7 +3,7 @@ from copy import deepcopy
 import numpy as np
 import time
 
-from configs import *
+from configs_penalty import *
 from gptree import GPTree
 from complexity_measures import init_IODC, IODC, mean_IODC
 from complexity_measures import init_slope_based_complexity, slope_based_complexity, mean_slope_based_complexity
@@ -14,12 +14,14 @@ def init_population(terminals):
     """
 
     # Number of individuals of each depth and initialized with each method
-    inds_per_depth = int((POP_SIZE / (MAX_INITIAL_DEPTH - 1)) / 2)
+    inds_per_depth = int((POP_SIZE / (MAX_INITIAL_DEPTH)) / 2)
 
     pop = []
     pop_str = []
 
-    for max_depth in range(MIN_DEPTH, MAX_INITIAL_DEPTH):
+    for max_depth in range(MIN_DEPTH, MAX_INITIAL_DEPTH + 1):
+
+        print('MAX DEPTH', max_depth)
 
         # Grow
         for _ in range(inds_per_depth):
@@ -40,7 +42,7 @@ def init_population(terminals):
 
             for _ in range(20):
                 ind = GPTree(terminals = terminals)
-                ind.random_tree(grow = True, max_depth = max_depth)  
+                ind.random_tree(grow = False, max_depth = max_depth)  
                 ind.create_lambda_function() # CREATE LAMBDA FUNCTION HERE!
 
                 if ind.tree2_string() not in pop_str:
@@ -55,7 +57,7 @@ def init_population(terminals):
         for _ in range(20):
             # Generate random tree with grow method at higher level to fill population
             ind = GPTree(terminals = terminals)
-            ind.random_tree(grow = 1, max_depth = MAX_INITIAL_DEPTH)
+            ind.random_tree(grow = True, max_depth = MAX_INITIAL_DEPTH)
             ind.create_lambda_function() # CREATE LAMBDA FUNCTION HERE!
 
             if ind.tree2_string() not in pop_str:
@@ -100,9 +102,10 @@ def evolve(train_dataset, test_dataset, augmented_dataset, train_target, test_ta
 
     # for ind in population:
     #     ind.print_tree()
-    #     print(ind.number_operations())
-    #     print(len(set(ind.used_features())))
-    #     print('----------------------')
+    #     print(ind.depth())
+        # print(ind.number_operations())
+        # print(len(set(ind.used_features())))
+        # print('----------------------')
  
 
     # Upper bounds for complexities

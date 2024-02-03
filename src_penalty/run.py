@@ -4,7 +4,7 @@ from tqdm import tqdm
 
 from data import read_dataset
 from tiny_gp import evolve
-from configs import GENERATIONS
+from configs_penalty import GENERATIONS
 
 #####################################################
 #                     StdGP Run                     #
@@ -102,6 +102,6 @@ def run_StdGP_all_ds():
         print(f'-------------------------------- DATASET {dataset} --------------------------------')
         run_stdGP(dataset)
 
-run_stdGP('Toxicity')
+run_stdGP('Concrete')
 
 # run_StdGP_all_ds()
