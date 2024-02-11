@@ -98,18 +98,11 @@ def complexity_tournament(population, dataset):
     # Select random individuals to compete
     tournament_inds = [population[randint(0, len(population)-1)] for _ in range(TOURNAMENT_FITNESS)]
 
-    print('Inds:')
-
-    for ind in tournament_inds:
-        ind.print_tree()
-
     # Get their complexity
     complexities = []
     for ind in tournament_inds:
         slope_value, _ = slope_based_complexity(ind, dataset)
         complexities.append(slope_value)
-
-    print('Complexities', complexities)
     
     # Return the winner
     return deepcopy(tournament_inds[complexities.index(min(complexities))])
@@ -134,26 +127,14 @@ def nested_tournament(population, fitnesses, dataset):
 
 def inverted_nested_tournament(population, dataset, target):
 
-    print('------------------ INVERTED TOURNAMENT ------------------')
-
     winners = []
 
     for _ in range(TOURNAMENT_COMPLEXITY):
-        print('------ COMPLEXITY TOURNAMENT ------')
         winners.append(complexity_tournament(population, dataset))
-
-    print('Winners:')
-    for ind in winners:
-        ind.print_tree()
 
     fitnesses = [fitness(ind, dataset, target) for ind in winners]
 
-    print('Fitnesses', fitnesses)
-
     winner = deepcopy(winners[fitnesses.index(min(fitnesses))])
-
-    print('Winner:')
-    winner.print_tree()
 
     return winner
 
