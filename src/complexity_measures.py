@@ -183,7 +183,7 @@ def slope_based_complexity(ind, dataset):
             pc_j += abs(first - second)
     
         # Calculate the mean of the slopes difference across the i=1..n-2 sum
-        mean_feat_complexity = (pc_j / (len(q_j) - 2)) if len(q_j) > 2 else 0
+        mean_feat_complexity = (pc_j / (len(preds) - 2)) if len(q_j) > 2 else 0
 
         feats_complexity[j] = mean_feat_complexity
 
