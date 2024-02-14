@@ -8,3 +8,4 @@ TOURNAMENT_COMPLEXITY   = 2    # size of tournament for tournament selection
 XO_RATE                 = 0.9  # crossover rate 
 PROB_MUTATION           = 0.1  # per-node mutation probability
 FITNESS                 = 'RMSE'
+DTOURNM_PROBABILITY     = 0.7

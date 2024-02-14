@@ -127,16 +127,23 @@ def nested_tournament(population, fitnesses, dataset):
 
 def inverted_nested_tournament(population, dataset, target):
 
-    winners = []
+    rand_nmb = random()
 
-    for _ in range(TOURNAMENT_COMPLEXITY):
-        winners.append(complexity_tournament(population, dataset))
+    if rand_nmb < DTOURNM_PROBABILITY:
 
-    fitnesses = [fitness(ind, dataset, target) for ind in winners]
+        winners = []
 
-    winner = deepcopy(winners[fitnesses.index(min(fitnesses))])
+        for _ in range(TOURNAMENT_COMPLEXITY):
+            winners.append(complexity_tournament(population, dataset))
 
-    return winner
+        fitnesses = [fitness(ind, dataset, target) for ind in winners]
+
+        winner = deepcopy(winners[fitnesses.index(min(fitnesses))])
+
+        return winner
+    
+    else:
+        return tournament(population, fitnesses)
 
             
 def evolve(train_dataset, test_dataset, augmented_dataset, train_target, test_target, terminals):
