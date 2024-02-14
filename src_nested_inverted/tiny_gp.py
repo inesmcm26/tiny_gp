@@ -125,7 +125,7 @@ def nested_tournament(population, fitnesses, dataset):
     # Choose the one with lowest slope based complexity
     return deepcopy(winners[slopes.index(min(slopes))])
 
-def inverted_nested_tournament(population, dataset, target):
+def inverted_nested_tournament(population, dataset, target, fitnesses):
 
     rand_nmb = random()
 
@@ -136,9 +136,9 @@ def inverted_nested_tournament(population, dataset, target):
         for _ in range(TOURNAMENT_COMPLEXITY):
             winners.append(complexity_tournament(population, dataset))
 
-        fitnesses = [fitness(ind, dataset, target) for ind in winners]
+        winners_fitnesses = [fitness(ind, dataset, target) for ind in winners]
 
-        winner = deepcopy(winners[fitnesses.index(min(fitnesses))])
+        winner = deepcopy(winners[winners_fitnesses.index(min(winners_fitnesses))])
 
         return winner
     
@@ -234,13 +234,13 @@ def evolve(train_dataset, test_dataset, augmented_dataset, train_target, test_ta
             
             prob = random()
 
-            parent = inverted_nested_tournament(population, train_dataset, train_target)
+            parent = inverted_nested_tournament(population, train_dataset, train_target, train_fitnesses)
 
             # Crossover
             if prob < XO_RATE:
 
                 # print('CROSSOVER')
-                parent2 = inverted_nested_tournament(population, train_dataset, train_target)
+                parent2 = inverted_nested_tournament(population, train_dataset, train_target, train_fitnesses)
 
                 parent_orig = deepcopy(parent)
                 parent2_orig = deepcopy(parent2)
