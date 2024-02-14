@@ -95,21 +95,28 @@ def tournament(population, fitnesses):
 
 def nested_tournament(population, fitnesses, dataset):
 
-    winners = []
+    rand_nmb = random()
 
-    # Choose N first based on RMSE
-    for _ in range(TOURNAMENT_COMPLEXITY):
-        winners.append(tournament(population, fitnesses))
+    if rand_nmb < DTOURNM_PROBABILITY:
 
-    slopes = []
+        winners = []
 
-    # Calculate complexities
-    for ind in winners:
-        slope_value, _ = slope_based_complexity(ind, dataset)
-        slopes.append(slope_value)
-        
-    # Choose the one with lowest slope based complexity
-    return deepcopy(winners[slopes.index(min(slopes))])
+        # Choose N first based on RMSE
+        for _ in range(TOURNAMENT_COMPLEXITY):
+            winners.append(tournament(population, fitnesses))
+
+        slopes = []
+
+        # Calculate complexities
+        for ind in winners:
+            slope_value, _ = slope_based_complexity(ind, dataset)
+            slopes.append(slope_value)
+            
+        # Choose the one with lowest slope based complexity
+        return deepcopy(winners[slopes.index(min(slopes))])
+
+    else:
+        return tournament(population, fitnesses)
             
 def evolve(train_dataset, test_dataset, augmented_dataset, train_target, test_target, terminals):
 
