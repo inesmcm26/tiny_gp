@@ -242,12 +242,11 @@ def evolve(train_dataset, test_dataset, augmented_dataset, train_target, test_ta
         train_fitnesses = new_train_fitnesses.copy()
         test_fitnesses = [fitness(ind, test_dataset, test_target) for ind in population]
         
-        # UNCOMMENT HERE FOR PREVIOUS VERSION
-        # if min(train_fitnesses) < best_of_run_f:
-        best_of_run_f = min(train_fitnesses)
-        best_of_run_gen = gen
-        best_of_run = deepcopy(population[train_fitnesses.index(min(train_fitnesses))])        
-        
+        if min(train_fitnesses) < best_of_run_f:
+            best_of_run_f = min(train_fitnesses)
+            best_of_run_gen = gen
+            best_of_run = deepcopy(population[train_fitnesses.index(min(train_fitnesses))])        
+            
         # Save best train performance
         best_train_fit_list.append(best_of_run_f)
         best_ind_list.append(best_of_run.create_expression())
