@@ -200,7 +200,7 @@ def evolve(train_dataset, test_dataset, augmented_dataset, train_target, test_ta
         # print('------------------------------------------ NEW GEN ------------------------------------------')
         print(gen)
 
-        new_pop=[]
+        new_pop=[deepcopy(best_of_run)]
 
         while len(new_pop) < POP_SIZE:
             
@@ -268,10 +268,15 @@ def evolve(train_dataset, test_dataset, augmented_dataset, train_target, test_ta
         train_fitnesses = new_train_fitnesses.copy()
         test_fitnesses = [fitness(ind, test_dataset, test_target) for ind in population]
         
-        if min(train_fitnesses) < best_of_run_f:
-            best_of_run_f = min(train_fitnesses)
-            best_of_run_gen = gen
-            best_of_run = deepcopy(population[train_fitnesses.index(min(train_fitnesses))])        
+        # UNCOMMENT HERE TO GET BEST SO FAR
+        # if min(train_fitnesses) < best_of_run_f:
+
+        if min(train_fitnesses) > best_of_run_f:
+            raise Exception('Best individual fitness increased')
+
+        best_of_run_f = min(train_fitnesses)
+        best_of_run_gen = gen
+        best_of_run = deepcopy(population[train_fitnesses.index(min(train_fitnesses))])        
         
         # Save best train performance
         best_train_fit_list.append(best_of_run_f)
