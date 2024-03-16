@@ -2,4 +2,4 @@ __pycache__
 results*
 run_notebook.ipynb
 notebooks/
-# data/
+data/
