@@ -24,7 +24,7 @@ def run_stdGP(ds_name):
     for run_nr in tqdm(range(21, 31)): # TODO: CHANGE HERE!
         
         # Get correct data partition
-        train_dataset, test_dataset, augmented_dataset, train_target, test_target = read_dataset(ds_name, run_nr)
+        train_dataset, test_dataset, sampled_dataset, train_target, test_target = read_dataset(ds_name, run_nr, sampling_mode = 'subsampled')
 
         terminals = [f'x{i}' for i in range(1, len(train_dataset[0]) + 1)]
 
@@ -32,13 +32,13 @@ def run_stdGP(ds_name):
         best_train_fit_list, best_test_fit_list, best_ind_list, best_of_run_gen, \
             mean_train_fit_list, mean_test_fit_list, \
                  slope_list, \
-                        slope_augmented_list, \
+                        slope_sampled_list, \
                             slope_test_list, \
-                            features_contribution_list, features_contribution_augmented_list, features_contribution_test_list, \
+                            features_contribution_list, features_contribution_sampled_list, features_contribution_test_list, \
                             size_list, mean_size_list, size_distribution_list, \
                                 no_list, mean_no_list, no_distribution_list, \
                                     feats_list, mean_feats_list, feats_distribution_list = \
-            evolve(train_dataset, test_dataset, augmented_dataset, train_target, test_target, terminals)
+            evolve(train_dataset, test_dataset, sampled_dataset, train_target, test_target, terminals)
         
         train_fit = pd.DataFrame([best_train_fit_list], columns = [i for i in range(0, GENERATIONS + 1)])
         test_fit = pd.DataFrame([best_test_fit_list], columns = [i for i in range(0, GENERATIONS + 1)])
@@ -48,13 +48,13 @@ def run_stdGP(ds_name):
         mean_test_fit = pd.DataFrame([mean_test_fit_list], columns = [i for i in range(0, GENERATIONS + 1)])
         slope = pd.DataFrame([slope_list], columns = [i for i in range(0, GENERATIONS + 1)])
         features_contribution = pd.DataFrame([features_contribution_list], columns = [i for i in range(0, GENERATIONS + 1)])
-        features_contribution_augmented = pd.DataFrame([features_contribution_augmented_list], columns = [i for i in range(0, GENERATIONS + 1)])
+        features_contribution_sampled = pd.DataFrame([features_contribution_sampled_list], columns = [i for i in range(0, GENERATIONS + 1)])
         features_contribution_test = pd.DataFrame([features_contribution_test_list], columns = [i for i in range(0, GENERATIONS + 1)])
         # mean_slope = pd.DataFrame([mean_slope_list], columns = [i for i in range(0, GENERATIONS + 1)])
         # slope_distribution = pd.DataFrame([slope_distribution_list], columns = [i for i in range(0, GENERATIONS + 1)])
-        slope_augmented = pd.DataFrame([slope_augmented_list], columns = [i for i in range(0, GENERATIONS + 1)])
-        # mean_slope_augmented = pd.DataFrame([mean_slope_augmented_list], columns = [i for i in range(0, GENERATIONS + 1)])
-        # slope_augmented_distribution = pd.DataFrame([slope_augmented_distribution_list], columns = [i for i in range(0, GENERATIONS + 1)])
+        slope_sampled = pd.DataFrame([slope_sampled_list], columns = [i for i in range(0, GENERATIONS + 1)])
+        # mean_slope_sampled = pd.DataFrame([mean_slope_sampled_list], columns = [i for i in range(0, GENERATIONS + 1)])
+        # slope_sampled_distribution = pd.DataFrame([slope_sampled_distribution_list], columns = [i for i in range(0, GENERATIONS + 1)])
         slope_test = pd.DataFrame([slope_test_list], columns = [i for i in range(0, GENERATIONS + 1)])
         size = pd.DataFrame([size_list], columns = [i for i in range(0, GENERATIONS + 1)])
         mean_size = pd.DataFrame([mean_size_list], columns = [i for i in range(0, GENERATIONS + 1)])
@@ -76,12 +76,12 @@ def run_stdGP(ds_name):
         slope.to_csv(SAVE_PATH + f'slope_complexity_run{run_nr}.csv')
         # mean_slope.to_csv(SAVE_PATH + f'mean_slope_complexity_run{run_nr}.csv')
         # slope_distribution.to_csv(SAVE_PATH + f'slope_distribution_run{run_nr}.csv')
-        slope_augmented.to_csv(SAVE_PATH + f'slope_augmented_complexity_run{run_nr}.csv')
-        # mean_slope_augmented.to_csv(SAVE_PATH + f'mean_slope_augmented_complexity_run{run_nr}.csv')
-        # slope_augmented_distribution.to_csv(SAVE_PATH + f'slope_augmented_distribution_run{run_nr}.csv')
+        slope_sampled.to_csv(SAVE_PATH + f'slope_sampled_complexity_run{run_nr}.csv')
+        # mean_slope_sampled.to_csv(SAVE_PATH + f'mean_slope_sampled_complexity_run{run_nr}.csv')
+        # slope_sampled_distribution.to_csv(SAVE_PATH + f'slope_sampled_distribution_run{run_nr}.csv')
         slope_test.to_csv(SAVE_PATH + f'slope_test_complexity_run{run_nr}.csv')
         features_contribution.to_csv(SAVE_PATH + f'features_contribution_run{run_nr}.csv')
-        features_contribution_augmented.to_csv(SAVE_PATH + f'features_contribution_augmented_run{run_nr}.csv')
+        features_contribution_sampled.to_csv(SAVE_PATH + f'features_contribution_sampled_run{run_nr}.csv')
         features_contribution_test.to_csv(SAVE_PATH + f'features_contribution_test_run{run_nr}.csv')
         size.to_csv(SAVE_PATH + f'size_run{run_nr}.csv')
         mean_size.to_csv(SAVE_PATH + f'mean_size_run{run_nr}.csv')

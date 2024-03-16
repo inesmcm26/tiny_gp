@@ -28,12 +28,12 @@ def generate_dataset(): # generate 101 data points from target_func
 
     return train_dataset, test_dataset, train_target, test_target
 
-def read_dataset(name, run_nr):
+def read_dataset(name, run_nr, sampling_mode = 'subsampled'):
     PATH = '/home/ines/Documents/tese/tiny_gp/data/' + name
 
     train = pd.read_csv(PATH + f'/train_{run_nr}.csv', index_col = 0)
     test = pd.read_csv(PATH + f'/test_{run_nr}.csv', index_col = 0)
-    subsampled = pd.read_csv(PATH + f'/subsampled_{run_nr}.csv', index_col = 0)
+    sampled = pd.read_csv(PATH + f'/{sampling_mode}_{run_nr}.csv', index_col = 0)
 
     train_dataset = train.drop('Target', axis = 1)
     train_target = train['Target'].to_numpy()
@@ -41,22 +41,22 @@ def read_dataset(name, run_nr):
     test_dataset = test.drop('Target', axis = 1)
     test_target = test['Target'].to_numpy()
 
-    subsampled_dataset = subsampled.drop('Target', axis = 1)
+    sampled_dataset = sampled.drop('Target', axis = 1)
 
-    train_dataset, test_dataset, subsampled_dataset = scale_numerical_features(train_dataset, test_dataset, subsampled_dataset)
+    train_dataset, test_dataset, sampled_dataset = scale_numerical_features(train_dataset, test_dataset, sampled_dataset)
 
-    return train_dataset, test_dataset, subsampled_dataset, train_target, test_target
+    return train_dataset, test_dataset, sampled_dataset, train_target, test_target
 
-def scale_numerical_features(train_df, test_df, subsampled_df):
+def scale_numerical_features(train_df, test_df, sampled_df):
     scaler = MinMaxScaler()
 
     train_df = scaler.fit_transform(train_df)
 
     test_df = scaler.transform(test_df)
 
-    subsampled_df = scaler.transform(subsampled_df)
+    sampled_df = scaler.transform(sampled_df)
 
-    return train_df, test_df, subsampled_df
+    return train_df, test_df, sampled_df
 
 def generate_intermediate_points(train_dataset):
 
