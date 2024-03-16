@@ -95,21 +95,28 @@ def tournament(population, fitnesses):
 
 def nested_tournament(population, fitnesses, dataset):
 
-    winners = []
+    rand_nmb = random()
 
-    # Choose N first based on RMSE
-    for _ in range(TOURNAMENT_COMPLEXITY):
-        winners.append(tournament(population, fitnesses))
+    if rand_nmb < DTOURNM_PROBABILITY:
 
-    slopes = []
+        winners = []
 
-    # Calculate complexities
-    for ind in winners:
-        slope_value, _ = slope_based_complexity(ind, dataset)
-        slopes.append(slope_value)
-        
-    # Choose the one with lowest slope based complexity
-    return deepcopy(winners[slopes.index(min(slopes))])
+        # Choose N first based on RMSE
+        for _ in range(TOURNAMENT_COMPLEXITY):
+            winners.append(tournament(population, fitnesses))
+
+        slopes = []
+
+        # Calculate complexities
+        for ind in winners:
+            slope_value, _ = slope_based_complexity(ind, dataset)
+            slopes.append(slope_value)
+            
+        # Choose the one with lowest slope based complexity
+        return deepcopy(winners[slopes.index(min(slopes))])
+
+    else:
+        return tournament(population, fitnesses)
             
 def evolve(train_dataset, test_dataset, augmented_dataset, train_target, test_target, terminals):
 
@@ -193,7 +200,7 @@ def evolve(train_dataset, test_dataset, augmented_dataset, train_target, test_ta
         # print('------------------------------------------ NEW GEN ------------------------------------------')
         print(gen)
 
-        new_pop=[]
+        new_pop=[deepcopy(best_of_run)]
 
         while len(new_pop) < POP_SIZE:
             
@@ -260,11 +267,16 @@ def evolve(train_dataset, test_dataset, augmented_dataset, train_target, test_ta
         population = new_pop.copy()
         train_fitnesses = new_train_fitnesses.copy()
         test_fitnesses = [fitness(ind, test_dataset, test_target) for ind in population]
-        
-        if min(train_fitnesses) < best_of_run_f:
-            best_of_run_f = min(train_fitnesses)
-            best_of_run_gen = gen
-            best_of_run = deepcopy(population[train_fitnesses.index(min(train_fitnesses))])        
+
+        # UNCOMMENT HERE TO GET BEST SO FAR
+        # if min(train_fitnesses) < best_of_run_f:
+
+        if min(train_fitnesses) > best_of_run_f:
+            raise Exception('Best individual fitness increased')
+
+        best_of_run_f = min(train_fitnesses)
+        best_of_run_gen = gen
+        best_of_run = deepcopy(population[train_fitnesses.index(min(train_fitnesses))])        
         
         # Save best train performance
         best_train_fit_list.append(best_of_run_f)
