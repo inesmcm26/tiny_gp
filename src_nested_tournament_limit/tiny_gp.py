@@ -199,12 +199,8 @@ def evolve(train_dataset, test_dataset, train_target, test_target, terminals):
                 
                 if slope_based_complexity(parent, train_dataset, train_target) <= 1:
                     new_pop.append(parent)
-                else:
-                    print('COMPLEXITY GREATER THAN TARGET!')
                 if slope_based_complexity(parent2, train_dataset, train_target) <= 1:
                     new_pop.append(parent2)
-                else:
-                    print('COMPLEXITY GREATER THAN TARGET!')
 
             # Mutation
             elif prob < XO_RATE + PROB_MUTATION:
@@ -218,15 +214,11 @@ def evolve(train_dataset, test_dataset, train_target, test_target, terminals):
                 
                 if slope_based_complexity(parent, train_dataset, train_target) <= 1:
                     new_pop.append(parent)
-                else:
-                    print('COMPLEXITY GREATER THAN TARGET!')
             
             # NOTE: Replication may also occur if no condition is met
             else:
                 if slope_based_complexity(parent, train_dataset, train_target) <= 1:
                     new_pop.append(parent)
-                else:
-                    print('COMPLEXITY GREATER THAN TARGET!')
 
         new_train_fitnesses = [fitness(ind, train_dataset, train_target) for ind in new_pop]
 
