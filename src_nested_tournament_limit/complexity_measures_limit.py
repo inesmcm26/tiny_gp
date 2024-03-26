@@ -196,8 +196,14 @@ def slope_based_complexity(ind, dataset, target):
     # Calculate max complexity
     max_complexity = target_based_complexity(ind, dataset, target)
 
-    # Returns a 
-    return complexity / max_complexity
+    # If both complexities are zero, return 1
+    if complexity == 0 and max_complexity == 0:
+        return 1
+    # If target complexity is zero and function complexity is not, function complexity exceeds target complexity
+    elif max_complexity == 0 and complexity != 0:
+        return 1.1
+    else:
+        return complexity / max_complexity
 
 def mean_slope_based_complexity(max_complexity, population, dataset):
     complexities = []
