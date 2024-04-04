@@ -101,7 +101,7 @@ def tournament(population, fitnesses, dataset):
         (tournament_fitnesses[0] < tournament_fitnesses[1] and complexity_values[0] <= complexity_values[1]):
         return deepcopy(population[tournament[0]])
     # B dominates over A
-    elif (tournament_fitnesses[1] < tournament_fitnesses[0] and complexity_values[1] < complexity_values[0]) or 1
+    elif (tournament_fitnesses[1] < tournament_fitnesses[0] and complexity_values[1] < complexity_values[0]) or \
         (tournament_fitnesses[1] <= tournament_fitnesses[0] and complexity_values[1] < complexity_values[0]):
         return deepcopy(population[tournament[1]])
     # No dominance. Rectilinear distance of A is smaller than euclidean distance of B
