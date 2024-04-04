@@ -5,7 +5,6 @@ import time
 
 from configs_variance import *
 from gptree import GPTree
-from complexity_measures import init_IODC, IODC, mean_IODC
 from complexity_measures import init_slope_based_complexity, slope_based_complexity, mean_slope_based_complexity
                    
 def init_population(terminals):
@@ -78,9 +77,9 @@ def fitness(individual, dataset, target):
     
     elif FITNESS == 'MAE':
         return np.mean(abs(np.array(preds) - np.array(target)))
-    
-                
-def tournament(population, fitnesses, dataset, target_slope):
+
+
+def tournament(population, fitnesses, dataset):
     """
     Tournament selection: modified tournament selection scheme
     """
@@ -92,20 +91,18 @@ def tournament(population, fitnesses, dataset, target_slope):
     # Check if any individual has complexity higher than target
     for ind_idx in tournament:
         complexity, _ = slope_based_complexity(population[ind_idx], dataset)
-        if complexity > target_slope:
-            # Set fitness to maximum
-            fitnesses[ind_idx] = 1e9
-
         complexity_values.append(complexity)
 
     # Get their fitness values
     tournament_fitnesses = [fitnesses[ind_idx] for ind_idx in tournament]
 
     # A dominates over B
-    if tournament_fitnesses[0] < tournament_fitnesses[1] and complexity_values[0] < complexity_values[1]:
+    if (tournament_fitnesses[0] <= tournament_fitnesses[1] and complexity_values[0] < complexity_values[1]) or \
+        (tournament_fitnesses[0] < tournament_fitnesses[1] and complexity_values[0] <= complexity_values[1]):
         return deepcopy(population[tournament[0]])
     # B dominates over A
-    elif tournament_fitnesses[1] < tournament_fitnesses[0] and complexity_values[1] < complexity_values[0]:
+    elif (tournament_fitnesses[1] < tournament_fitnesses[0] and complexity_values[1] < complexity_values[0]) or 1
+        (tournament_fitnesses[1] <= tournament_fitnesses[0] and complexity_values[1] < complexity_values[0]):
         return deepcopy(population[tournament[1]])
     # No dominance. Rectilinear distance of A is smaller than euclidean distance of B
     elif abs(tournament_fitnesses[0] + complexity_values[0]) < np.sqrt(tournament_fitnesses[1]**2 + complexity_values[1]**2):
@@ -115,8 +112,9 @@ def tournament(population, fitnesses, dataset, target_slope):
         return deepcopy(population[tournament[1]])
     # Return individual with smaller complexity
     else:
-        return deepcopy(population[tournament[complexity_values.index(min(complexity_values))]])
-            
+        return deepcopy(population[tournament[complexity_values.index(min(complexity_values))]])  
+
+
 def evolve(train_dataset, test_dataset, augmented_dataset, train_target, test_target, terminals):
 
     # print('TRAIN DATASET')
@@ -134,7 +132,7 @@ def evolve(train_dataset, test_dataset, augmented_dataset, train_target, test_ta
 
     # Upper bounds for complexities
     # z, max_IODC = init_IODC(train_dataset, train_target)
-    max_slope_complexity = init_slope_based_complexity(train_dataset, train_target)
+    # max_slope_complexity = init_slope_based_complexity(train_dataset, train_target)
 
     train_fitnesses = [fitness(ind, train_dataset, train_target) for ind in population]
     test_fitnesses = [fitness(ind, test_dataset, test_target) for ind in population]
@@ -199,19 +197,19 @@ def evolve(train_dataset, test_dataset, augmented_dataset, train_target, test_ta
         # print('------------------------------------------ NEW GEN ------------------------------------------')
         print(gen)
 
-        new_pop=[]
+        new_pop=[deepcopy(best_of_run)]
 
         while len(new_pop) < POP_SIZE:
             
             prob = random()
 
-            parent = tournament(population, train_fitnesses, train_dataset, max_slope_complexity)
+            parent = tournament(population, train_fitnesses, train_dataset)
 
             # Crossover
             if prob < XO_RATE:
 
                 # print('CROSSOVER')
-                parent2 = tournament(population, train_fitnesses, train_dataset, max_slope_complexity)
+                parent2 = tournament(population, train_fitnesses, train_dataset)
 
                 parent_orig = deepcopy(parent)
                 parent2_orig = deepcopy(parent2)
@@ -267,10 +265,12 @@ def evolve(train_dataset, test_dataset, augmented_dataset, train_target, test_ta
         train_fitnesses = new_train_fitnesses.copy()
         test_fitnesses = [fitness(ind, test_dataset, test_target) for ind in population]
         
-        if min(train_fitnesses) < best_of_run_f:
-            best_of_run_f = min(train_fitnesses)
-            best_of_run_gen = gen
-            best_of_run = deepcopy(population[train_fitnesses.index(min(train_fitnesses))])        
+        if min(train_fitnesses) > best_of_run_f:
+            raise Exception('Best individual fitness increased')
+        
+        best_of_run_f = min(train_fitnesses)
+        best_of_run_gen = gen
+        best_of_run = deepcopy(population[train_fitnesses.index(min(train_fitnesses))])        
         
         # Save best train performance
         best_train_fit_list.append(best_of_run_f)
@@ -334,7 +334,7 @@ def evolve(train_dataset, test_dataset, augmented_dataset, train_target, test_ta
         # Optimal solution found
         if best_of_run_f == 0:
             break   
-    
+
     print("\n\n_________________________________________________\nEND OF RUN\nbest_of_run attained at gen " + str(best_of_run_gen) +\
           " and has f=" + str(round(best_of_run_f, 3)))
 

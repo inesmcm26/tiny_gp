@@ -124,9 +124,7 @@ def init_slope_based_complexity(dataset, target):
 
             pc_j += abs(first - second)
 
-        mean_feat_complexity = (pc_j / (len(target) - 2)) if len(q_j) > 2 else 0
-
-        complexity = complexity + mean_feat_complexity
+        complexity += pc_j
     
     print('END INIT. MAX COMPLEXITY:', complexity)
     return complexity
