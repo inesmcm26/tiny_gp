@@ -42,13 +42,7 @@ def read_dataset(name, run_nr):
 
     train_dataset, test_dataset = scale_numerical_features(train_dataset, test_dataset)
 
-    augmented_dataset = generate_intermediate_points(train_dataset)
-
-    aug_df = pd.DataFrame(augmented_dataset, columns = [f'x{i}' for i in range(1, augmented_dataset.shape[1] + 1)])
-
-    aug_df.to_csv(PATH + f'/augmented_{run_nr}.csv')
-
-    return train_dataset, test_dataset, augmented_dataset, train_target, test_target
+    return train_dataset, test_dataset, train_target, test_target
 
 def scale_numerical_features(train_df, test_df):
     scaler = MinMaxScaler()

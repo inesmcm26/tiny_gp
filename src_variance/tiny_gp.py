@@ -115,7 +115,7 @@ def tournament(population, fitnesses, dataset):
         return deepcopy(population[tournament[complexity_values.index(min(complexity_values))]])  
 
 
-def evolve(train_dataset, test_dataset, augmented_dataset, train_target, test_target, terminals):
+def evolve(train_dataset, test_dataset, train_target, test_target, terminals):
 
     # print('TRAIN DATASET')
     # print(train_dataset)
@@ -157,10 +157,6 @@ def evolve(train_dataset, test_dataset, augmented_dataset, train_target, test_ta
 
     # print('SLOPE:', slope)
     # print('FEATURES CONTRIBUTION:', features_contribution)
-
-    slope_augmented_value, features_dict_augmented = slope_based_complexity(best_of_run, augmented_dataset)
-    slope_augmented = [slope_augmented_value]
-    features_contribution_augmented = [features_dict_augmented]
 
     slope_test_value, features_dict_test = slope_based_complexity(best_of_run, test_dataset)
     slope_test = [slope_test_value]
@@ -291,10 +287,6 @@ def evolve(train_dataset, test_dataset, augmented_dataset, train_target, test_ta
         # print('SLOPE AFTER GEN:', slope)
         # print('FEATURES CONTRIBUTION AFTER GEN:', features_contribution)
 
-        slope_augmented_value, features_dict_augmented = slope_based_complexity(best_of_run, augmented_dataset)
-        slope_augmented.append(slope_augmented_value)
-        features_contribution_augmented.append(features_dict_augmented)
-
         slope_test_value, features_dict_test = slope_based_complexity(best_of_run, test_dataset)
         slope_test.append(slope_test_value)
         features_contribution_test.append(features_dict_test)
@@ -329,7 +321,6 @@ def evolve(train_dataset, test_dataset, augmented_dataset, train_target, test_ta
         print('NEW BEST FINTESS', best_of_run_f)
         print('FITNESS IN TEST', best_test_fit_list[-1])
         print('BEST INDIVIDUAL COMPLEXITY:', slope[-1])
-        print('BEST INDIVIDUAL AUGMENTED COMPLEXITY:', slope_augmented[-1])
         
         # Optimal solution found
         if best_of_run_f == 0:
@@ -341,9 +332,8 @@ def evolve(train_dataset, test_dataset, augmented_dataset, train_target, test_ta
     return best_train_fit_list, best_test_fit_list, best_ind_list, best_of_run_gen, \
         mean_train_fit_list, mean_test_fit_list, \
         slope, \
-        slope_augmented, \
         slope_test, \
-        features_contribution, features_contribution_augmented, features_contribution_test, \
+        features_contribution, features_contribution_test, \
         size, mean_size, size_distribution, \
         no, mean_no, no_distribution, \
         num_feats, mean_number_feats, num_feats_distribution
