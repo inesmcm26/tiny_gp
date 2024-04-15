@@ -33,6 +33,7 @@ def read_dataset(name, run_nr, sampling_mode = 'subsampled'):
 
     train = pd.read_csv(PATH + f'/train_{run_nr}.csv', index_col = 0)
     test = pd.read_csv(PATH + f'/test_{run_nr}.csv', index_col = 0)
+    sampled = pd.read_csv(PATH + f'/{sampling_mode}_{run_nr}.csv', index_col = 0)
 
     train_dataset = train.drop('Target', axis = 1)
     train_target = train['Target'].to_numpy()
@@ -40,15 +41,19 @@ def read_dataset(name, run_nr, sampling_mode = 'subsampled'):
     test_dataset = test.drop('Target', axis = 1)
     test_target = test['Target'].to_numpy()
 
-    train_dataset, test_dataset = scale_numerical_features(train_dataset, test_dataset)
+    sampled_dataset = sampled.drop('Target', axis = 1)
 
-    return train_dataset, test_dataset, train_target, test_target
+    train_dataset, test_dataset, sampled_dataset = scale_numerical_features(train_dataset, test_dataset, sampled_dataset)
 
-def scale_numerical_features(train_df, test_df):
+    return train_dataset, test_dataset, sampled_dataset, train_target, test_target
+
+def scale_numerical_features(train_df, test_df, sampled_df):
     scaler = MinMaxScaler()
 
     train_df = scaler.fit_transform(train_df)
 
     test_df = scaler.transform(test_df)
 
-    return train_df, test_df
+    sampled_df = scaler.transform(sampled_df)
+
+    return train_df, test_df, sampled_df

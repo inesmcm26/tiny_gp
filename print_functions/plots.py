@@ -25,14 +25,13 @@ MAPPTING_METHODS = {
     'Double Tournament Complexity Limit': 'results_elitism/results_nested_limit',
 }
 
-GENS = [10, 250, 500]
-def plot_curvatures(dataset, methods, run_nr, base_path, saving_path = None):
-    X, _, Y, _ = read_dataset(dataset, run_nr)
+GENS = [10, 150, 500]
 
+def plot_curvatures(dataset, methods, run_nr, base_path, saving_path = None):
     # Read dataset
     df = pd.read_csv(base_path + f'/data/{dataset}/train_{run_nr}.csv', index_col=0)
-    terminals = df.drop('Target', axis=1).columns
-
+    terminals = [f'x{i}' for i in range(1, len(df.drop('Target', axis=1).columns) + 1)]
+    
     fig = make_subplots(rows=len(terminals), cols=len(GENS),
                         subplot_titles=[f'Generation {gen}' for gen in GENS])
 
@@ -40,7 +39,20 @@ def plot_curvatures(dataset, methods, run_nr, base_path, saving_path = None):
 
     not_used = {idx: [] for idx in range(len(GENS))}
 
+    show_legends = {method: True for method in methods}
+
     for method_idx, m in enumerate(methods):
+
+        if m == 'Subsampled':
+            _, _, X, Y, _ = read_dataset(dataset, run_nr, sampling_mode='subsampled')
+        elif m == 'Oversampled':
+            _, _, X, Y, _ = read_dataset(dataset, run_nr, sampling_mode='oversampled')
+        else:
+            X, _, _, Y, _ = read_dataset(dataset, run_nr)
+
+        print('METHOD:', m)
+        print(X.shape)
+        
         method_path = base_path + f'/{MAPPTING_METHODS[m]}/{dataset}/'
 
         # Read and plot function
@@ -71,17 +83,23 @@ def plot_curvatures(dataset, methods, run_nr, base_path, saving_path = None):
                     preds_j = median_predictions['Prediction'].values
 
                     fig.add_trace(go.Scatter(x=p_j, y=preds_j, mode='lines',
-                                            line=dict(color=colors[method_idx], width = 2)),
+                                            line=dict(color=colors[method_idx], width = 2),
+                                            name = m,
+                                            showlegend = show_legends[m]),
                                             row=row+1, col=col+1)
+                    
+                    show_legends[m] = False
                     
                     if method_idx == 0:
                         fig.update_xaxes(title_text=terminal, row=row+1, col=col+1)
+                        fig.update_yaxes(title_text='f(x)', row=row+1, col=col+1, title_standoff=3)
                         # fig.update_yaxes(title_text='Prediction', row=row+1, col=col+1)
                 else:
                     fig.add_trace(go.Scatter(x=[], y=[], mode='lines',
-                                            line=dict(color=colors[method_idx], width = 2),
-                                            text='Feature not used'),
+                                            showlegend=False),
                                             row=row+1, col=col+1)
+                    if method_idx == 0:
+                        fig.update_xaxes(title_text=terminal, row=row+1, col=col+1)
                     
 
                     not_used[col].append(row)
@@ -101,13 +119,12 @@ def plot_curvatures(dataset, methods, run_nr, base_path, saving_path = None):
                         row=row + 1, col=col + 1
                     )
                     
-        
         fig.update_layout(
             autosize=False,
             width=1000,
-            height=2500,
+            height=1500,
             margin=dict(l=40, r=20, b=70, t=70, pad=0),
-            showlegend = False,
+            showlegend = True,
             legend=dict(yanchor="bottom", xanchor="center", x=0.5, orientation='h'),
         )
 
