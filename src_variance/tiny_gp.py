@@ -178,11 +178,11 @@ def evolve(train_dataset, test_dataset, train_target, test_target, terminals):
     slope = [pop_complexities[train_fitnesses.index(min(train_fitnesses))]]
     features_contribution = [features_contributions_list[train_fitnesses.index(min(train_fitnesses))]]
 
-    print('Best of run')
-    best_of_run.print_tree()
-    print('Best of run fitness:', best_of_run_f)
-    print('Best of run complexity:', slope[-1])
-    print('Best of run features contribution:', features_contribution[-1])
+    # print('Best of run')
+    # best_of_run.print_tree()
+    # print('Best of run fitness:', best_of_run_f)
+    # print('Best of run complexity:', slope[-1])
+    # print('Best of run features contribution:', features_contribution[-1])
 
     # print('SLOPE:', slope)
     # print('FEATURES CONTRIBUTION:', features_contribution)
@@ -326,14 +326,14 @@ def evolve(train_dataset, test_dataset, train_target, test_target, terminals):
         slope.append(pop_complexities[train_fitnesses.index(min(train_fitnesses))])
         features_contribution.append(features_contributions_list[train_fitnesses.index(min(train_fitnesses))])
 
-        print('Best of run')
-        best_of_run.print_tree()
-        print('Used feats:', best_of_run.used_feats())
-        print('Best of run fitness:', best_of_run_f)
-        print('Best of run complexity:', slope[-1])
-        print('Best of run features contribution:', features_contribution[-1])
+        # print('Best of run')
+        # best_of_run.print_tree()
+        # print('Used feats:', best_of_run.used_feats())
+        # print('Best of run fitness:', best_of_run_f)
+        # print('Best of run complexity:', slope[-1])
+        # print('Best of run features contribution:', features_contribution[-1])
 
-        print('SLOPE and FEATS CONTROBUTION:', slope_based_complexity(best_of_run, train_dataset))
+        # print('SLOPE and FEATS CONTROBUTION:', slope_based_complexity(best_of_run, train_dataset))
 
         # print('SLOPE AFTER GEN:', slope)
         # print('FEATURES CONTRIBUTION AFTER GEN:', features_contribution)
