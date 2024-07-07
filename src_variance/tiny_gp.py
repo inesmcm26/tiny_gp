@@ -79,40 +79,49 @@ def fitness(individual, dataset, target):
         return np.mean(abs(np.array(preds) - np.array(target)))
 
 
-def tournament(population, fitnesses, dataset):
+def tournament(population, fitnesses, complexities):
     """
     Tournament selection: modified tournament selection scheme
     """
     # Select random individuals to compete
-    tournament = [randint(0, len(population)-1) for _ in range(TOURNAMENT_SIZE)]
+    tournament_idxs = [randint(0, len(population)-1) for _ in range(TOURNAMENT_SIZE)]
     
     # Get their complexity values
-    complexity_values = []
-    # Check if any individual has complexity higher than target
-    for ind_idx in tournament:
-        complexity, _ = slope_based_complexity(population[ind_idx], dataset)
-        complexity_values.append(complexity)
-
+    complexity_values = [complexities[ind_idx] for ind_idx in tournament_idxs]
     # Get their fitness values
-    tournament_fitnesses = [fitnesses[ind_idx] for ind_idx in tournament]
+    tournament_fitnesses = [fitnesses[ind_idx] for ind_idx in tournament_idxs]
 
     # A dominates over B
     if (tournament_fitnesses[0] <= tournament_fitnesses[1] and complexity_values[0] < complexity_values[1]) or \
         (tournament_fitnesses[0] < tournament_fitnesses[1] and complexity_values[0] <= complexity_values[1]):
-        return deepcopy(population[tournament[0]])
+        return deepcopy(population[tournament_idxs[0]])
     # B dominates over A
-    elif (tournament_fitnesses[1] < tournament_fitnesses[0] and complexity_values[1] < complexity_values[0]) or \
-        (tournament_fitnesses[1] <= tournament_fitnesses[0] and complexity_values[1] < complexity_values[0]):
-        return deepcopy(population[tournament[1]])
+    elif (tournament_fitnesses[1] <= tournament_fitnesses[0] and complexity_values[1] < complexity_values[0]) or \
+        (tournament_fitnesses[1] < tournament_fitnesses[0] and complexity_values[1] <= complexity_values[0]):
+        return deepcopy(population[tournament_idxs[1]])
     # No dominance. Rectilinear distance of A is smaller than euclidean distance of B
     elif abs(tournament_fitnesses[0] + complexity_values[0]) < np.sqrt(tournament_fitnesses[1]**2 + complexity_values[1]**2):
-        return deepcopy(population[tournament[0]])
+        return deepcopy(population[tournament_idxs[0]])
     # No dominance. Rectilinear distance of B is smaller than euclidean distance of A
     elif abs(tournament_fitnesses[1] + complexity_values[1]) < np.sqrt(tournament_fitnesses[0]**2 + complexity_values[0]**2):
-        return deepcopy(population[tournament[1]])
+        return deepcopy(population[tournament_idxs[1]])
     # Return individual with smaller complexity
     else:
-        return deepcopy(population[tournament[complexity_values.index(min(complexity_values))]])  
+        return deepcopy(population[tournament_idxs[complexity_values.index(min(complexity_values))]]) 
+
+
+def scale(values):
+    """
+    Scale values to [0, 1]
+    """
+    min_val = min(values)
+    max_val = max(values)
+    
+    # If all values are the same, return a list of zeros
+    if min_val == max_val:
+        return [0 for _ in values]
+    
+    return [(val - min_val) / (max_val - min_val) for val in values]
 
 
 def evolve(train_dataset, test_dataset, train_target, test_target, terminals):
@@ -135,7 +144,15 @@ def evolve(train_dataset, test_dataset, train_target, test_target, terminals):
     # max_slope_complexity = init_slope_based_complexity(train_dataset, train_target)
 
     train_fitnesses = [fitness(ind, train_dataset, train_target) for ind in population]
+    train_fitnesses_scaled = scale(train_fitnesses)
     test_fitnesses = [fitness(ind, test_dataset, test_target) for ind in population]
+    pop_complexities = []
+    features_contributions = []
+    for ind in population:
+        slope_value, features_dict = slope_based_complexity(ind, train_dataset)
+        pop_complexities.append(slope_value)
+        features_contributions.append(features_dict)
+        pop_complexities_scaled = scale(pop_complexities)
 
     best_of_run_f = min(train_fitnesses)
     best_of_run_gen = 0
@@ -151,9 +168,8 @@ def evolve(train_dataset, test_dataset, train_target, test_target, terminals):
     mean_test_fit_list = [np.mean(test_fitnesses)]
     # Save complexities
     # iodc = [IODC(max_IODC, z, best_of_run, train_dataset)]
-    slope_value, features_dict = slope_based_complexity(best_of_run, train_dataset)
-    slope = [slope_value]
-    features_contribution = [features_dict]
+    slope = [pop_complexities[train_fitnesses.index(min(train_fitnesses))]]
+    features_contribution = [features_contributions[train_fitnesses.index(min(train_fitnesses))]]
 
     # print('SLOPE:', slope)
     # print('FEATURES CONTRIBUTION:', features_contribution)
@@ -199,13 +215,13 @@ def evolve(train_dataset, test_dataset, train_target, test_target, terminals):
             
             prob = random()
 
-            parent = tournament(population, train_fitnesses, train_dataset)
+            parent = tournament(population, train_fitnesses_scaled, pop_complexities_scaled)
 
             # Crossover
             if prob < XO_RATE:
 
                 # print('CROSSOVER')
-                parent2 = tournament(population, train_fitnesses, train_dataset)
+                parent2 = tournament(population, train_fitnesses_scaled, pop_complexities_scaled)
 
                 parent_orig = deepcopy(parent)
                 parent2_orig = deepcopy(parent2)
@@ -259,6 +275,7 @@ def evolve(train_dataset, test_dataset, train_target, test_target, terminals):
             
         population = new_pop.copy()
         train_fitnesses = new_train_fitnesses.copy()
+        train_fitnesses_scaled = scale(train_fitnesses)
         test_fitnesses = [fitness(ind, test_dataset, test_target) for ind in population]
         
         if min(train_fitnesses) > best_of_run_f:
@@ -279,10 +296,15 @@ def evolve(train_dataset, test_dataset, train_target, test_target, terminals):
         mean_test_fit_list.append(np.mean(test_fitnesses))
 
         # Save complexities
-        # iodc.append(IODC(max_IODC, z, best_of_run, train_dataset))
-        slope_value, features_dict = slope_based_complexity(best_of_run, train_dataset)
-        slope.append(slope_value)
-        features_contribution.append(features_dict)
+        for ind in population:
+            slope_value, features_dict = slope_based_complexity(ind, train_dataset)
+            pop_complexities.append(slope_value)
+            pop_complexities_scaled = scale(pop_complexities)
+            features_contributions.append(features_dict)
+
+        # Save best of run complexities
+        slope.append(pop_complexities[train_fitnesses.index(min(train_fitnesses))])
+        features_contribution.append(features_contributions[train_fitnesses.index(min(train_fitnesses))])
 
         # print('SLOPE AFTER GEN:', slope)
         # print('FEATURES CONTRIBUTION AFTER GEN:', features_contribution)

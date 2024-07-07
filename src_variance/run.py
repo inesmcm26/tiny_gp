@@ -13,7 +13,7 @@ from configs_variance import GENERATIONS
 
 def run_stdGP(ds_name):
 
-    SAVE_PATH = f'/home/ines/Documents/tese/tiny_gp/results_nested_tournament/{ds_name}/'
+    SAVE_PATH = f'/home/ines/Documents/tese/tiny_gp/results_mmots/{ds_name}/'
 
     # Check if the directory exists
     if not os.path.exists(SAVE_PATH):
@@ -21,7 +21,7 @@ def run_stdGP(ds_name):
         os.makedirs(SAVE_PATH)
     
     # Run for 30 times with each dataset partition
-    for run_nr in tqdm(range(21, 31)): # TODO: CHANGE HERE!
+    for run_nr in tqdm(range(1, 11)): # TODO: CHANGE HERE!
         
         # Get correct data partition
         train_dataset, test_dataset, train_target, test_target = read_dataset(ds_name, run_nr)
@@ -97,6 +97,6 @@ def run_StdGP_all_ds():
         print(f'-------------------------------- DATASET {dataset} --------------------------------')
         run_stdGP(dataset)
 
-run_stdGP('Concrete')
+run_stdGP('Istanbul')
 
 # run_StdGP_all_ds()
