@@ -144,16 +144,11 @@ def evolve(train_dataset, test_dataset, train_target, test_target, terminals):
     # max_slope_complexity = init_slope_based_complexity(train_dataset, train_target)
 
     train_fitnesses = [fitness(ind, train_dataset, train_target) for ind in population]
-    train_fitnesses_scaled = scale(train_fitnesses)
     test_fitnesses = [fitness(ind, test_dataset, test_target) for ind in population]
-    pop_complexities = []
-    features_contributions = []
-    for ind in population:
-        slope_value, features_dict = slope_based_complexity(ind, train_dataset)
-        pop_complexities.append(slope_value)
-        features_contributions.append(features_dict)
-        pop_complexities_scaled = scale(pop_complexities)
-
+    # Scale train fitnesses
+    train_fitnesses_scaled = scale(train_fitnesses)
+    
+    # Best of run
     best_of_run_f = min(train_fitnesses)
     best_of_run_gen = 0
     best_of_run = deepcopy(population[train_fitnesses.index(min(train_fitnesses))])
@@ -163,20 +158,38 @@ def evolve(train_dataset, test_dataset, train_target, test_target, terminals):
     best_ind_list = [best_of_run.create_expression()]
     # Save test performance
     best_test_fit_list = [test_fitnesses[train_fitnesses.index(min(train_fitnesses))]]
+
+    # Calculate complexity of each individual
+    pop_complexities = []
+    features_contributions_list = []
+    for ind in population:
+        slope_value, features_dict = slope_based_complexity(ind, train_dataset)
+        pop_complexities.append(slope_value)
+        features_contributions_list.append(features_dict)
+        # Scale complexities
+        pop_complexities_scaled = scale(pop_complexities)
+
     # Save mean train performance
-    mean_train_fit_list = [np.mean(train_fitnesses)]
-    mean_test_fit_list = [np.mean(test_fitnesses)]
+    # mean_train_fit_list = [np.mean(train_fitnesses)]
+    # mean_test_fit_list = [np.mean(test_fitnesses)]
     # Save complexities
     # iodc = [IODC(max_IODC, z, best_of_run, train_dataset)]
+    # Sve best of run complexity
     slope = [pop_complexities[train_fitnesses.index(min(train_fitnesses))]]
-    features_contribution = [features_contributions[train_fitnesses.index(min(train_fitnesses))]]
+    features_contribution = [features_contributions_list[train_fitnesses.index(min(train_fitnesses))]]
+
+    print('Best of run')
+    best_of_run.print_tree()
+    print('Best of run fitness:', best_of_run_f)
+    print('Best of run complexity:', slope[-1])
+    print('Best of run features contribution:', features_contribution[-1])
 
     # print('SLOPE:', slope)
     # print('FEATURES CONTRIBUTION:', features_contribution)
 
-    slope_test_value, features_dict_test = slope_based_complexity(best_of_run, test_dataset)
-    slope_test = [slope_test_value]
-    features_contribution_test = [features_dict_test]
+    # slope_test_value, features_dict_test = slope_based_complexity(best_of_run, test_dataset)
+    # slope_test = [slope_test_value]
+    # features_contribution_test = [features_dict_test]
 
     # print('SLOPE AUGMENTED:', slope)
     # print('FEATURES CONTRIBUTION AUGMENTED:', features_contribution)
@@ -192,26 +205,31 @@ def evolve(train_dataset, test_dataset, train_target, test_target, terminals):
     # Save best ind size
     size = [best_of_run.size()]
     # Save sizes
-    size_distribution = [[ind.size() for ind in population]]
-    # Save mean sizes
-    mean_size = [np.mean(size_distribution[0])]
+    # size_distribution = [[ind.size() for ind in population]]
+    # # Save mean sizes
+    # mean_size = [np.mean(size_distribution[0])]
     # Save measure of interpretability
     # Number of ops
-    no = [best_of_run.number_operations()]
-    no_distribution = [[ind.number_operations() for ind in population]]
-    mean_no = [np.mean(no_distribution[0])]
+    # no = [best_of_run.number_operations()]
+    # no_distribution = [[ind.number_operations() for ind in population]]
+    # mean_no = [np.mean(no_distribution[0])]
     # Number of features used
     num_feats = [best_of_run.number_feats()]
-    num_feats_distribution = [[ind.number_feats() for ind in population]]
-    mean_number_feats = [np.mean(num_feats_distribution[-1])]
+    # num_feats_distribution = [[ind.number_feats() for ind in population]]
+    # mean_number_feats = [np.mean(num_feats_distribution[-1])]
 
     for gen in range(1, GENERATIONS + 1):  
         # print('------------------------------------------ NEW GEN ------------------------------------------')
         print(gen)
 
         new_pop=[deepcopy(best_of_run)]
+        
+        
+        print('LEN POP COMPLEXITIES SCALED', len(pop_complexities_scaled))
+        print('LEN TRAIN FITNESSES SCALED', len(pop_complexities_scaled))
 
         while len(new_pop) < POP_SIZE:
+
             
             prob = random()
 
@@ -273,11 +291,11 @@ def evolve(train_dataset, test_dataset, train_target, test_target, terminals):
         if len(new_pop) != POP_SIZE:
             raise Exception('POP SIZE EXCEEDED!!!')
             
-        population = new_pop.copy()
-        train_fitnesses = new_train_fitnesses.copy()
+        population = deepcopy(new_pop)
+        train_fitnesses = deepcopy(new_train_fitnesses)
         train_fitnesses_scaled = scale(train_fitnesses)
         test_fitnesses = [fitness(ind, test_dataset, test_target) for ind in population]
-        
+
         if min(train_fitnesses) > best_of_run_f:
             raise Exception('Best individual fitness increased')
         
@@ -292,26 +310,37 @@ def evolve(train_dataset, test_dataset, train_target, test_target, terminals):
         best_test_fit_list.append(fitness(best_of_run, test_dataset, test_target))
 
         # Save mean train performance
-        mean_train_fit_list.append(np.mean(train_fitnesses))
-        mean_test_fit_list.append(np.mean(test_fitnesses))
+        # mean_train_fit_list.append(np.mean(train_fitnesses))
+        # mean_test_fit_list.append(np.mean(test_fitnesses))
 
+        pop_complexities = []
+        features_contributions_list = []
         # Save complexities
         for ind in population:
             slope_value, features_dict = slope_based_complexity(ind, train_dataset)
             pop_complexities.append(slope_value)
             pop_complexities_scaled = scale(pop_complexities)
-            features_contributions.append(features_dict)
+            features_contributions_list.append(features_dict)
 
         # Save best of run complexities
         slope.append(pop_complexities[train_fitnesses.index(min(train_fitnesses))])
-        features_contribution.append(features_contributions[train_fitnesses.index(min(train_fitnesses))])
+        features_contribution.append(features_contributions_list[train_fitnesses.index(min(train_fitnesses))])
+
+        print('Best of run')
+        best_of_run.print_tree()
+        print('Used feats:', best_of_run.used_feats())
+        print('Best of run fitness:', best_of_run_f)
+        print('Best of run complexity:', slope[-1])
+        print('Best of run features contribution:', features_contribution[-1])
+
+        print('SLOPE and FEATS CONTROBUTION:', slope_based_complexity(best_of_run, train_dataset))
 
         # print('SLOPE AFTER GEN:', slope)
         # print('FEATURES CONTRIBUTION AFTER GEN:', features_contribution)
 
-        slope_test_value, features_dict_test = slope_based_complexity(best_of_run, test_dataset)
-        slope_test.append(slope_test_value)
-        features_contribution_test.append(features_dict_test)
+        # slope_test_value, features_dict_test = slope_based_complexity(best_of_run, test_dataset)
+        # slope_test.append(slope_test_value)
+        # features_contribution_test.append(features_dict_test)
 
         # print('SLOPE AUGMENTED AFTER GEN:', slope_augmented)
         # print('FEATURES AUGMENTED CONTRIBUTION AFTER GEN:', features_contribution_augmented)
@@ -325,20 +354,20 @@ def evolve(train_dataset, test_dataset, train_target, test_target, terminals):
         # mean_slope_augmented.append(np.mean(slope_augmented_distribution[-1]))
         # Save size
         size.append(best_of_run.size())
-        # Save size distribution
-        size_distribution.append([ind.size() for ind in population])
-        # Save mean size
-        mean_size.append(np.mean(size_distribution[-1]))
+        # # Save size distribution
+        # size_distribution.append([ind.size() for ind in population])
+        # # Save mean size
+        # mean_size.append(np.mean(size_distribution[-1]))
 
         # Save iterpretability
-        # Number of ops
-        no.append(best_of_run.number_operations())
-        no_distribution.append([ind.number_operations() for ind in population])
-        mean_no.append(np.mean(no_distribution[-1]))
+        # # Number of ops
+        # no.append(best_of_run.number_operations())
+        # no_distribution.append([ind.number_operations() for ind in population])
+        # mean_no.append(np.mean(no_distribution[-1]))
         # Number of unique feats
         num_feats.append(best_of_run.number_feats())
-        num_feats_distribution.append([ind.number_feats() for ind in population])
-        mean_number_feats.append(np.mean(num_feats_distribution[-1]))
+        # num_feats_distribution.append([ind.number_feats() for ind in population])
+        # mean_number_feats.append(np.mean(num_feats_distribution[-1]))
 
         print('NEW BEST FINTESS', best_of_run_f)
         print('FITNESS IN TEST', best_test_fit_list[-1])
@@ -351,14 +380,11 @@ def evolve(train_dataset, test_dataset, train_target, test_target, terminals):
     print("\n\n_________________________________________________\nEND OF RUN\nbest_of_run attained at gen " + str(best_of_run_gen) +\
           " and has f=" + str(round(best_of_run_f, 3)))
 
-    return best_train_fit_list, best_test_fit_list, best_ind_list, best_of_run_gen, \
-        mean_train_fit_list, mean_test_fit_list, \
+    return best_train_fit_list, best_test_fit_list, best_ind_list,\
         slope, \
-        slope_test, \
-        features_contribution, features_contribution_test, \
-        size, mean_size, size_distribution, \
-        no, mean_no, no_distribution, \
-        num_feats, mean_number_feats, num_feats_distribution
+        features_contribution, \
+        size, \
+        num_feats
     
 # if __name__== "__main__":
 #   best_train_fit_list, best_test_fit_list, best_ind_list, best_of_run_gen = evolve()
