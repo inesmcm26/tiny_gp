@@ -223,10 +223,9 @@ def evolve(train_dataset, test_dataset, train_target, test_target, terminals):
         print(gen)
 
         new_pop=[deepcopy(best_of_run)]
-        
-        
-        print('LEN POP COMPLEXITIES SCALED', len(pop_complexities_scaled))
-        print('LEN TRAIN FITNESSES SCALED', len(pop_complexities_scaled))
+    
+        # print('LEN POP COMPLEXITIES SCALED', len(pop_complexities_scaled))
+        # print('LEN TRAIN FITNESSES SCALED', len(pop_complexities_scaled))
 
         while len(new_pop) < POP_SIZE:
 

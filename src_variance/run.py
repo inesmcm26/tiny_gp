@@ -91,6 +91,6 @@ def run_StdGP_all_ds():
         print(f'-------------------------------- DATASET {dataset} --------------------------------')
         run_stdGP(dataset)
 
-run_stdGP('Istanbul')
+run_stdGP('Concrete')
 
 # run_StdGP_all_ds()
